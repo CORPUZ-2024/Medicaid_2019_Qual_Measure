@@ -1,6 +1,6 @@
 # Medicaid_2019_Qual_Measure
 **Active Project**</p>
-Visualization Project on the [2019 Medicaid Quality Measure Dataset](https://data.medicaid.gov/Quality/2019-Child-and-Adult-Health-Care-Quality-Measures-/afrw-yks2) 
+Visualization Project on the [2019 Medicaid Quality Measure Dataset](https://data.medicaid.gov/dataset/e36d89c0-f62e-56d5-bc7e-b0adf89262b8) 
 
 ## This visualization project has the following design goals: 
 ### Overview Across all Measure Types by State (View A)
