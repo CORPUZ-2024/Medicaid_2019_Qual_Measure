@@ -17,7 +17,7 @@ Another valuable view is one that can show a 'snapshot' of all the states relati
 <img src="https://user-images.githubusercontent.com/29220349/134825488-439ed5fa-b1cb-4211-a211-2d17f262d912.JPG" width="90%"></img>
 
 ### Ambiguity with the Dataset </p> 
-As illustrated below, some entries will have indetical information except for the values in 'State Rate' and the corresponding 'Median', 'Top' and 'Bottom Values'. The original dataset did not include dates or other features that would make one entry more accurate than the other. From a general standpoint, we cannot discern which duplicate to keep and out of convinience, we just retained the first instance of a certain entry. 
+As illustrated below, some entries have indentical information except for the values in 'State Rate' and the corresponding 'Median', 'Top' and 'Bottom Values'. The original dataset did not include dates or other features that would make one entry more accurate than the other. From a general standpoint, we cannot discern which duplicate to keep and out of convinience, we just retained the first instance of a certain entry. 
 <img src="https://user-images.githubusercontent.com/29220349/134824766-d20a9546-c3b4-4d96-bb69-914f7f6fd7c3.JPG" width="90%"></img> </p> 
 
 
