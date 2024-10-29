@@ -5,7 +5,7 @@ Please note that the graphs are rendered through nbviewer by clicking on the cir
 
 ## This visualization project has the following design goals: 
 ### Overview Across all Measure Types by State (View A)
-CMS has simple visualizations on this dataset where viewers are able to select a certain state and Measure name. However this feature requires multiple visualizations for one arbitraty state given one specific Measure Name since a state will most likely be tracking several Measures in a given domain. Hence, a practical view that can compliment what is already available online is one that offers a 'snapshot' of each state by domain so that a viewer can easily spot measure names where that state is falling behind or doing well on, in a specific domain. Since there are only 5 different domains, our visualization will reduce the number of graphs that viewers will have to peruse through. </p> 
+CMS has simple visualizations on this dataset where viewers are able to select a certain state and Measure name. However this feature requires multiple visualizations for one arbitraty state given one specific Measure Name since a state will most likely be tracking several Measures in a given domain. Hence, a practical view that can compliment what is already available online is one that offers a 'snapshot' of each state by domain so that a viewer can easily spot measure names where that state is falling behind or doing well on, in a specific domain. Since there are only 5 different domains, our visualization will reduce the number of graphs that viewers will have to look through. </p> 
 
 **Sample Visual:**
 <img src="https://user-images.githubusercontent.com/29220349/131366354-5e957cb5-01fe-4218-8535-f431b9bb1adf.JPG" width="90%"></img> </p> 
