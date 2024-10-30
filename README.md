@@ -5,7 +5,8 @@ Please note that the graphs are rendered through nbviewer by clicking on the cir
 
 ## This visualization project has the following design goals: 
 ### Overview Across all Measure Types by State (View A)
-CMS has simple visualizations on this dataset where viewers are able to select a certain state and Measure name. However this feature requires multiple visualizations for one arbitraty state given one specific Measure Name since a state will most likely be tracking several Measures in a given domain. Hence, a practical view that can compliment what is already available online is one that offers a 'snapshot' of each state by domain so that a viewer can easily spot measure names where that state is falling behind or doing well on, in a specific domain. Since there are only 5 different domains, our visualization will reduce the number of graphs that viewers will have to look through. </p> 
+CMS currently provides simple visualizations that allow users to select a specific state and measure name. However, this approach requires multiple visualizations for a single state and measure, as states typically track several measures within a given domain.
+To address this limitation, we propose a more practical visualization that provides a domain-level snapshot of each state. This approach would enable users to quickly identify areas where a state is underperforming or excelling within a specific domain. By focusing on the five primary domains, we reduce the effort required in gathering the relevant insights for a given state. </p> 
 
 **Sample Visual:**
 <img src="https://user-images.githubusercontent.com/29220349/131366354-5e957cb5-01fe-4218-8535-f431b9bb1adf.JPG" width="90%"></img> </p> 
@@ -13,11 +14,11 @@ Through this view, stakeholders can easily spot the Measures in a given domain w
  
 ### Overview Across all States by Measure  Type (View B) 
  </p>
-Another valuable view is one that can show a 'snapshot' of all the states relative to a specific measure type where the states are arranged in ascending or descending order. This way, viewers can see the group of states that are in the top, median and bottom quartiles in terms of state rates for measures that these states have in common.
+Another valuable visualization would be a comparative snapshot of all states relative to a specific measure type. By arranging states in ascending or descending order based on their rates for a shared measure, users can easily identify top, median, and bottom-performing states.
 <img src="https://user-images.githubusercontent.com/29220349/134825488-439ed5fa-b1cb-4211-a211-2d17f262d912.JPG" width="90%"></img>
 
 ### Ambiguity with the Dataset </p> 
-As illustrated below, some entries have indentical information except for the values in 'State Rate' and the corresponding 'Median', 'Top' and 'Bottom Values'. The original dataset did not include dates or other features that would make one entry more accurate than the other. From a general standpoint, we cannot discern which duplicate to keep and out of convinience, we just retained the first instance of a certain entry. 
+As illustrated below, some entries have identical information except for the values in 'State Rate' and the corresponding 'Median', 'Top' and 'Bottom Values'. The original dataset lacked dates or other distinguishing features that would indicate the accuracy of one entry over another. Given this ambiguity, we opted to retain the first instance of each unique entry for practical purposes.
 <img src="https://user-images.githubusercontent.com/29220349/134824766-d20a9546-c3b4-4d96-bb69-914f7f6fd7c3.JPG" width="90%"></img> </p> 
 
 
