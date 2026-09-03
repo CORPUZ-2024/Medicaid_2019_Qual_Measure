@@ -1,7 +1,7 @@
 # Medicaid_2019_Qual_Measure
 Visualization Project on the [2019 Medicaid Quality Measure Dataset](https://data.medicaid.gov/dataset/e36d89c0-f62e-56d5-bc7e-b0adf89262b8).
 
-** A working version of the updated analysis is saved in the master branch. 
+** A working version of the updated analysis is saved in the master branch : https://github.com/CORPUZ-2024/Medicaid_2019_Qual_Measure/tree/master
 
 Please note that the graphs are rendered through nbviewer by clicking on the circle icon located in the upper right corner of the notebook. Or click on [View A](https://nbviewer.jupyter.org/github/corpuzn12/Medicaid_2019_Qual_Measure/blob/fcf0a1a5b052dbdd2b1dba4831adaa51ca725322/2019Medicaid.ipynb) or [View B](https://nbviewer.jupyter.org/github/corpuzn12/Medicaid_2019_Qual_Measure/blob/fcf0a1a5b052dbdd2b1dba4831adaa51ca725322/View%20B.ipynb).
 
