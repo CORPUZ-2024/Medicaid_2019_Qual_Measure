@@ -1,0 +1,4 @@
+State,total_medicaid_chip_enrollment,as_of_date,source
+# From the CMS "Medicaid and CHIP Enrollment Trends Snapshot" (monthly). Leave
+# header-only to have the beneficiary-magnitude estimate emit null with
+# needs_analyst_input=true rather than a fabricated count.

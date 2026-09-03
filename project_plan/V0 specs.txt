@@ -1,0 +1,15 @@
+V0 specs 
+for this repo, create implementation specs for github page that  
+
+1. visualizes the VIEW B mentioned in read me across all measures and both adult and children set, provide . add a summary section highlighting top , median and bottom performing states for 2024.provide visuals for each adult and child sets by measure type 
+2. Then analyze each states performance across all measures  from last 4 years from 2024 so we know what states most improvement or decline  as well as those who remained in bottom quartiles.  Establish a baseline for good and bad performance  by looking at the  average state rate change by measure type in each child and adult sets by year (2021 - 22, then 2022- 2023 etc ) across all states , then  do the same comparison but stratified by regions as described here : https://www.cdc.gov/cove/data-visualization-types/hhs-region-map.html. Summarize any performance and note if any regional trends emerge, if there are states or measures that are uniquely struggling and potential reasons why based on agency reports to see implementation/funding related issues as well as peer reviewed journals to see if its clinical factors related to the measure goals. or other factors like access, equity etc. 
+3. In an analysis section, 
+   a. analyze legislation/programming and funding landscape that are impacting the success and decline of what measures 
+   b. given the most active parts of healthcare policy , what measures / states or regions are either at risk for decline or positioned for success + potential # of benes and $ increased healthcare utilization cost as a negative impact. provide document for how these numbers were calculated.
+4. Tell me limitations of these instructions in terms of scope and approach in understanding measure performance in this context
+5. {CODE} write a read me section in master branch explaining current methodology as an extension of the scope from 2022 version. 
+
+Repo: https://github.com/CORPUZ-2024/Medicaid_2019_Qual_Measure
+Data Source: https://data.medicaid.gov/datasets?theme%5B0%5D=Quality 
+
+

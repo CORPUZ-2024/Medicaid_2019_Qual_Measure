@@ -1,0 +1,4 @@
+State,expansion_status,provider_tax_reliance,budget_shortfall_flag,fiscal_exposure,note,source
+# fiscal_exposure in {Low, Medium, High} - ordinal, NOT a modeled dollar figure (spec 3.2.2).
+# expansion_status in {Expansion, Non-expansion}. provider_tax_reliance in {Low, Medium, High, Unknown}.
+# Leave this file header-only to have the pipeline emit null fiscal-exposure with needs_analyst_input=true.

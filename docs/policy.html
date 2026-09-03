@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Policy Context — Core Set View B Extension</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header class="site">
+  <h1>Core Set · View B Extension</h1>
+  <nav>
+    <a href="index.html">View B (2024)</a>
+    <a href="trends.html">Trends 2022–24</a>
+    <a href="regional.html">Regional</a>
+    <a href="risk.html">At-Risk Analysis</a>
+    <a href="policy.html">Policy Context</a>
+    <a href="limitations.html">Limitations</a>
+    <a href="methodology.html">Methodology</a>
+  </nav>
+</header>
+<main id="doc"><p>Loading…</p></main>
+<footer class="site">Source: <code>docs/policy-context.md</code> · data.medicaid.gov Quality theme</footer>
+<script src="assets/common.js"></script>
+<script src="assets/md.js"></script>
+<script>
+fetch('policy-context.md',{cache:'no-cache'}).then(r=>r.text()).then(t=>{
+  document.getElementById('doc').innerHTML = mdToHtml(t);
+}).catch(e=>{document.getElementById('doc').innerHTML='<p>Could not load policy-context.md: '+e+'</p>';});
+</script>
+</body>
+</html>

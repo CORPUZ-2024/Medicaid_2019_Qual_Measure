@@ -1,0 +1,54 @@
+State,StateAbbr,HHSRegion,HHSRegionHQ
+Connecticut,CT,1,Boston
+Maine,ME,1,Boston
+Massachusetts,MA,1,Boston
+New Hampshire,NH,1,Boston
+Rhode Island,RI,1,Boston
+Vermont,VT,1,Boston
+New Jersey,NJ,2,New York
+New York,NY,2,New York
+Puerto Rico,PR,2,New York
+Virgin Islands,VI,2,New York
+Delaware,DE,3,Philadelphia
+Dist. of Col.,DC,3,Philadelphia
+Maryland,MD,3,Philadelphia
+Pennsylvania,PA,3,Philadelphia
+Virginia,VA,3,Philadelphia
+West Virginia,WV,3,Philadelphia
+Alabama,AL,4,Atlanta
+Florida,FL,4,Atlanta
+Georgia,GA,4,Atlanta
+Kentucky,KY,4,Atlanta
+Mississippi,MS,4,Atlanta
+North Carolina,NC,4,Atlanta
+South Carolina,SC,4,Atlanta
+Tennessee,TN,4,Atlanta
+Illinois,IL,5,Chicago
+Indiana,IN,5,Chicago
+Michigan,MI,5,Chicago
+Minnesota,MN,5,Chicago
+Ohio,OH,5,Chicago
+Wisconsin,WI,5,Chicago
+Arkansas,AR,6,Dallas
+Louisiana,LA,6,Dallas
+New Mexico,NM,6,Dallas
+Oklahoma,OK,6,Dallas
+Texas,TX,6,Dallas
+Iowa,IA,7,Kansas City
+Kansas,KS,7,Kansas City
+Missouri,MO,7,Kansas City
+Nebraska,NE,7,Kansas City
+Colorado,CO,8,Denver
+Montana,MT,8,Denver
+North Dakota,ND,8,Denver
+South Dakota,SD,8,Denver
+Utah,UT,8,Denver
+Wyoming,WY,8,Denver
+Arizona,AZ,9,San Francisco
+California,CA,9,San Francisco
+Hawaii,HI,9,San Francisco
+Nevada,NV,9,San Francisco
+Alaska,AK,10,Seattle
+Idaho,ID,10,Seattle
+Oregon,OR,10,Seattle
+Washington,WA,10,Seattle

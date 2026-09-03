@@ -1,0 +1,40 @@
+Use the **DKAN API** that data.medicaid.gov runs on. Two stages: find the resource IDs, then pull rows.
+
+**1. Find the datasets (metastore / search)**
+
+```
+GET https://data.medicaid.gov/api/1/search/?fulltext=Child%20and%20Adult%20Health%20Care%20Quality%20Measures&theme=Quality
+```
+
+or list/inspect directly:
+
+```
+GET https://data.medicaid.gov/api/1/metastore/schemas/dataset/items?show-reference-ids
+```
+
+Each yearly dataset ("2022 Child and Adult Health Care Quality Measures", "2023 …", "2024 …") comes back with a `distribution` array; grab the distribution's `identifier` (the datastore **resource id**) from each one.
+
+**2. Pull the rows (datastore)**
+
+SQL endpoint (simplest for a full table):
+
+```
+GET https://data.medicaid.gov/api/1/datastore/sql?query=[SELECT * FROM {resourceId}][LIMIT 10000 OFFSET 0]&show_db_columns=true
+```
+
+or the structured query endpoint with paging:
+
+```
+GET https://data.medicaid.gov/api/1/datastore/query/{resourceId}?limit=10000&offset=0
+```
+
+Response has `results` (array of row objects) and `count`. Page with `offset += limit` until you've read `count` rows. Each yearly file is well under 100k rows, so a handful of requests per year covers it.
+
+**3. In the pipeline**
+
+- Loop the three resource IDs, request JSON pages, concatenate.
+- Add the `CoreSetYear` column yourself (the API won't provide it) — key it to which dataset each request came from.
+- Keep the raw JSON/CSV per year under `data/raw/` untouched, write the concatenated+tagged result to `data/processed/`, exactly as Appendix A specifies.
+- Note the datastore may return all columns as strings — cast `StateRate`, `Median`, `Top`, `Bottom` to numeric after load, same as the 2019 notebook does.
+
+No API key is required for public reads; just set a `User-Agent` header and handle HTTP 429 with a short backoff.

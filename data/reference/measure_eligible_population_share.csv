@@ -1,0 +1,4 @@
+measure_name_contains,program,eligible_population_share,basis,source
+# eligible_population_share = (measure denominator population) / (total Medicaid+CHIP enrollment)
+# Derive per measure from its `Rate Definition` denominator (e.g. "children 12-24 months").
+# Header-only -> beneficiary-magnitude estimate emits null with needs_analyst_input=true.

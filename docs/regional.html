@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Regional (HHS) — Core Set View B Extension</title>
+<link rel="stylesheet" href="assets/style.css">
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+</head>
+<body>
+<header class="site">
+  <h1>Core Set · View B Extension</h1>
+  <nav>
+    <a href="index.html">View B (2024)</a>
+    <a href="trends.html">Trends 2022–24</a>
+    <a href="regional.html">Regional</a>
+    <a href="risk.html">At-Risk Analysis</a>
+    <a href="policy.html">Policy Context</a>
+    <a href="limitations.html">Limitations</a>
+    <a href="methodology.html">Methodology</a>
+  </nav>
+</header>
+<main>
+  <h2>HHS-region stratification</h2>
+  <p class="lede">Section 2.4. The Section 2.2 delta calculation, re-run with HHS region as an
+  added grouping and restricted to the state × measure × transition pairs that passed the 2.3
+  comparability gate. <code>region_vs_national</code> is the region’s mean direction-adjusted Δ
+  minus the national mean for the same program / domain / transition.</p>
+  <div class="callout" id="reg-note"></div>
+
+  <div class="controls">
+    <label class="ctl">Program
+      <select id="r-prog"><option>Child Core Set</option><option>Adult Core Set</option></select></label>
+  </div>
+  <div class="card"><div id="reg-chart" class="chart"></div></div>
+
+  <h3>Furthest from the national average (by program × domain × transition)</h3>
+  <div class="grid c2">
+    <div class="card"><h3>Most below national</h3><div class="scroll"><table id="below"></table></div></div>
+    <div class="card"><h3>Most above national</h3><div class="scroll"><table id="above"></table></div></div>
+  </div>
+
+  <h3>All region × domain × transition cells</h3>
+  <div class="controls">
+    <label class="ctl">Domain <select id="r-domain"><option value="">All</option></select></label>
+    <label class="ctl">Transition <select id="r-trans"><option value="">All</option>
+      <option>2022-&gt;2023</option><option>2023-&gt;2024</option></select></label>
+  </div>
+  <div class="card scroll"><table id="reg-table"></table></div>
+</main>
+<footer class="site" id="foot"></footer>
+
+<script src="assets/common.js"></script>
+<script>
+let R; const el=id=>document.getElementById(id);
+(async function(){
+  R = await CS.json('regional.json');
+  const meta = await CS.json('meta.json');
+  el('foot').innerHTML=`Generated ${meta.generated_utc}`;
+  el('reg-note').textContent = R.note;
+
+  const doms=[...new Set(R.region_by_domain.map(x=>x.domain))].sort();
+  doms.forEach(d=>el('r-domain').add(new Option(d,d)));
+
+  el('r-prog').addEventListener('change',drawChart); drawChart();
+  ['r-domain','r-trans'].forEach(id=>el(id).addEventListener('input',drawTable)); drawTable();
+
+  hl('below', R.highlights.most_below_national);
+  hl('above', R.highlights.most_above_national);
+})();
+
+function drawChart(){
+  const prog=el('r-prog').value;
+  const r=R.region_overall.filter(x=>x.program===prog).sort((a,b)=>a.region-b.region);
+  Plotly.newPlot('reg-chart',[{
+    type:'bar', x:r.map(x=>'R'+x.region+' '+x.region_hq), y:r.map(x=>x.mean_improve_delta),
+    marker:{color:r.map(x=>x.mean_improve_delta>=0?'#1a7f4b':'#b3341f')},
+    hovertext:r.map(x=>`${x.n_improving}▲ / ${x.n_declining}▼ over ${x.n_pairs} comparable pairs`),
+    hovertemplate:'%{x}: %{y:.2f}<br>%{hovertext}<extra></extra>'
+  }],{
+    title:{text:prog+' — mean direction-adjusted Δ by HHS region',font:{size:13}},
+    height:420,margin:{l:44,r:14,t:34,b:90},
+    yaxis:{zeroline:true,zerolinecolor:'#98a2b3',gridcolor:'#eef0f2'},
+    xaxis:{tickangle:-35,tickfont:{size:10}}
+  },{displayModeBar:false,responsive:true});
+}
+function hl(id, rows){
+  el(id).innerHTML=`<thead><tr><th>Prog</th><th>Domain</th><th>Trans</th><th class="num">Region</th>
+    <th class="num">Region Δ</th><th class="num">Nat’l Δ</th><th class="num">vs nat’l</th></tr></thead>
+    <tbody>${rows.map(x=>`<tr><td>${x.program.replace(' Core Set','')}</td><td>${x.domain}</td>
+      <td>${x.transition}</td><td class="num">R${x.region}</td>
+      <td class="num">${CS.fmt(x.mean_improve_delta,2)}</td>
+      <td class="num">${CS.fmt(x.national_mean_improve_delta,2)}</td>
+      <td class="num">${CS.fmt(x.region_vs_national,2)}</td></tr>`).join('')}</tbody>`;
+}
+function drawTable(){
+  const d=el('r-domain').value, tr=el('r-trans').value.replace('&gt;','>');
+  let rows=R.region_by_domain;
+  if(d) rows=rows.filter(x=>x.domain===d);
+  if(tr) rows=rows.filter(x=>x.transition===tr);
+  rows=[...rows].sort((a,b)=>a.region_vs_national-b.region_vs_national);
+  const t=el('reg-table');
+  t.innerHTML=`<thead><tr>
+    <th data-k>Program</th><th data-k>Domain</th><th data-k>Transition</th>
+    <th data-k class="num">Region</th><th data-k class="num">Pairs</th>
+    <th data-k class="num">Region Δ</th><th data-k class="num">National Δ</th>
+    <th data-k class="num">vs national</th><th data-k class="num">▲/▼/–</th>
+    </tr></thead><tbody>${rows.map(x=>`<tr>
+      <td>${x.program.replace(' Core Set','')}</td><td>${x.domain}</td><td>${x.transition}</td>
+      <td class="num" data-v="${x.region}">R${x.region} ${x.region_hq}</td>
+      <td class="num">${x.n_pairs}</td>
+      <td class="num" data-v="${x.mean_improve_delta}">${CS.fmt(x.mean_improve_delta,2)}</td>
+      <td class="num">${CS.fmt(x.national_mean_improve_delta,2)}</td>
+      <td class="num" data-v="${x.region_vs_national}">${CS.fmt(x.region_vs_national,2)}</td>
+      <td class="num">${x.n_improving}/${x.n_declining}/${x.n_stable}</td></tr>`).join('')}</tbody>`;
+  CS.sortable(t);
+}
+</script>
+</body>
+</html>

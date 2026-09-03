@@ -1,0 +1,6 @@
+program,measure_name,measure_abbr,trendable_2022_2024,source
+# Populate from CMS "Criteria for Using the 2024 Child and Adult Core Set
+# Measures to Assess Trends in State Performance" (Sept 2025). CMS found 19 of
+# the Child Core Set and 22 of the Adult Core Set measures met all three
+# criteria for the 2022-2024 window. Until this file is populated, spec_audit
+# falls back to a computed approximation and marks the output accordingly.

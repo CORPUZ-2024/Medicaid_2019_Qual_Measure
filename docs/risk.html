@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>At-Risk Analysis — Core Set View B Extension</title>
+<link rel="stylesheet" href="assets/style.css">
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+</head>
+<body>
+<header class="site">
+  <h1>Core Set · View B Extension</h1>
+  <nav>
+    <a href="index.html">View B (2024)</a>
+    <a href="trends.html">Trends 2022–24</a>
+    <a href="regional.html">Regional</a>
+    <a href="risk.html">At-Risk Analysis</a>
+    <a href="policy.html">Policy Context</a>
+    <a href="limitations.html">Limitations</a>
+    <a href="methodology.html">Methodology</a>
+  </nav>
+</header>
+<main>
+  <h2>At-risk / positioned-for-success scoring</h2>
+  <p class="lede">Section 3.2. A transparent, component-wise index — not a probability and not a
+  dollar figure. Dollar / increased-utilization-cost impact is intentionally out of scope in the
+  v2 spec; only a beneficiary <i>magnitude</i> estimate is modelled, and only when its reference
+  tables are supplied.</p>
+
+  <div class="callout" id="fiscal-warn"></div>
+
+  <div class="card">
+    <b>composite_risk (0–100)</b> = 100 × (
+    <span id="w-trend"></span>·trend_exposure<sub>n</sub> +
+    <span id="w-fiscal"></span>·fiscal_exposure +
+    <span id="w-report"></span>·reporting_capacity<sub>n</sub> )
+    <div class="note">Each raw component is min–max normalised within program. Domain weights in
+      trend_exposure: <span id="dw"></span> (all other domains ×1.0).</div>
+  </div>
+
+  <div class="controls">
+    <label class="ctl">Program
+      <select id="k-prog"><option>Child Core Set</option><option>Adult Core Set</option></select></label>
+  </div>
+  <div class="card"><div id="risk-chart" class="chart"></div></div>
+  <div class="card scroll"><table id="risk-table"></table></div>
+
+  <h3>Beneficiary-magnitude estimate</h3>
+  <div class="card" id="bene"></div>
+</main>
+<footer class="site" id="foot"></footer>
+
+<script src="assets/common.js"></script>
+<script>
+let K; const el=id=>document.getElementById(id);
+(async function(){
+  K = await CS.json('risk.json');
+  const meta = await CS.json('meta.json');
+  el('foot').innerHTML=`Generated ${meta.generated_utc}`;
+  el('w-trend').textContent=K.weights.trend_exposure;
+  el('w-fiscal').textContent=K.weights.fiscal_exposure;
+  el('w-report').textContent=K.weights.reporting_capacity_exposure;
+  el('dw').textContent=Object.entries(K.domain_weights).map(([d,w])=>`${d} ×${w}`).join(', ');
+  el('fiscal-warn').innerHTML = K.fiscal_exposure_missing
+    ? `<b>fiscal_exposure not yet supplied.</b> Every state uses a neutral 0.5 for that component
+       until <code>data/reference/state_fiscal_exposure.csv</code> is populated. Rankings below
+       are driven by trend and reporting-capacity exposure only.`
+    : `fiscal_exposure loaded from reference table.`;
+
+  el('k-prog').addEventListener('change',draw); draw();
+
+  const b=K.beneficiary_magnitude;
+  el('bene').innerHTML = b.needs_analyst_input
+    ? `<p><b>Not computed — needs analyst input.</b> No values are fabricated.</p>
+       <p class="mono">${b.formula}</p><div class="note">${b.note}</div>`
+    : `<div class="scroll"><table><thead><tr><th>State</th><th>Program</th><th>Measure</th>
+        <th class="num">Affected beneficiaries (magnitude)</th></tr></thead><tbody>${
+        b.estimates.map(e=>`<tr><td>${e.state}</td><td>${e.program.replace(' Core Set','')}</td>
+          <td>${e.measure_key.split(' | ').slice(1).join(' — ')}</td>
+          <td class="num">${CS.fmt(e.affected_beneficiaries_estimate,0)}</td></tr>`).join('')}
+        </tbody></table></div>`;
+})();
+
+function draw(){
+  const prog=el('k-prog').value;
+  const r=K.scores.filter(x=>x.program===prog).sort((a,b)=>b.composite_risk_0_100-a.composite_risk_0_100);
+  Plotly.newPlot('risk-chart',[{
+    type:'bar',orientation:'h',
+    x:r.map(x=>x.composite_risk_0_100), y:r.map(x=>x.state),
+    marker:{color:r.map(x=>x.composite_risk_0_100),colorscale:'OrRd'},
+    hovertext:r.map(x=>{const c=x.components;
+      return `trend raw ${c.trend_exposure.raw} (${c.trend_exposure.n_declining_gated}▼, `+
+             `${c.trend_exposure.n_persistent_bottom} persistent-bottom) · `+
+             `reporting new-measures ${c.reporting_capacity_exposure.n_new_measures_vs_2023}`;}),
+    hovertemplate:'%{y}: %{x}<br>%{hovertext}<extra></extra>'
+  }],{
+    title:{text:prog+' — composite risk (0–100)',font:{size:13}},
+    height:Math.max(420,15*r.length+60),margin:{l:110,r:14,t:34,b:34},
+    xaxis:{range:[0,100],gridcolor:'#eef0f2'},yaxis:{automargin:true,tickfont:{size:10}}
+  },{displayModeBar:false,responsive:true});
+
+  const t=el('risk-table');
+  t.innerHTML=`<thead><tr>
+    <th data-k>State</th><th data-k class="num">Composite risk</th>
+    <th data-k class="num">▼ declining (gated)</th><th data-k class="num">wt. declining</th>
+    <th data-k class="num">persistent-bottom</th><th data-k>fiscal</th>
+    <th data-k class="num">new measures ’24</th></tr></thead><tbody>${
+    r.map(x=>{const c=x.components;return `<tr>
+      <td data-v="${x.state}">${x.state}</td>
+      <td class="num" data-v="${x.composite_risk_0_100}">${CS.fmt(x.composite_risk_0_100,1)}</td>
+      <td class="num">${c.trend_exposure.n_declining_gated}</td>
+      <td class="num">${CS.fmt(c.trend_exposure.weighted_declining,2)}</td>
+      <td class="num">${c.trend_exposure.n_persistent_bottom}</td>
+      <td>${c.fiscal_exposure.used_neutral_default?CS.pill('na','neutral 0.5'):CS.pill('warn',c.fiscal_exposure.category)}</td>
+      <td class="num">${c.reporting_capacity_exposure.n_new_measures_vs_2023}</td></tr>`;}).join('')}</tbody>`;
+  CS.sortable(t);
+}
+</script>
+</body>
+</html>

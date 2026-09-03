@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Trends 2022–2024 — Core Set View B Extension</title>
+<link rel="stylesheet" href="assets/style.css">
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+</head>
+<body>
+<header class="site">
+  <h1>Core Set · View B Extension</h1>
+  <nav>
+    <a href="index.html">View B (2024)</a>
+    <a href="trends.html">Trends 2022–24</a>
+    <a href="regional.html">Regional</a>
+    <a href="risk.html">At-Risk Analysis</a>
+    <a href="policy.html">Policy Context</a>
+    <a href="limitations.html">Limitations</a>
+    <a href="methodology.html">Methodology</a>
+  </nav>
+</header>
+<main>
+  <h2>Three-year trend: 2022 → 2024</h2>
+  <p class="lede">Section 2. Window chosen to match CMS’s own “Trends in State Performance:
+  2022 to 2024” product exactly. The baseline is data-driven: the average year-over-year
+  change in state rate for each program × direction group. A state/measure is
+  <b>Improving</b> / <b>Declining</b> when its change is more than ½ SD better / worse than that
+  group’s baseline, else <b>Stable</b>.</p>
+
+  <div class="callout" id="mandatory"></div>
+
+  <h3>Comparability gate (Section 2.3)</h3>
+  <div class="card"><div class="grid c3" id="audit-kpis"></div>
+    <div class="note" id="audit-caveat"></div></div>
+
+  <h3>Baseline — average YoY rate change by program × direction</h3>
+  <div class="card scroll"><table id="baseline"></table></div>
+
+  <h3>State rollup</h3>
+  <div class="controls">
+    <label class="ctl">Program
+      <select id="s-prog"><option>Child Core Set</option><option>Adult Core Set</option></select></label>
+  </div>
+  <div class="card"><div id="state-chart" class="chart"></div></div>
+  <div class="card scroll"><table id="state-table"></table></div>
+
+  <h3>Measures moving most (mean direction-adjusted Δ, all comparable transitions)</h3>
+  <div class="card scroll"><table id="measure-table"></table></div>
+
+  <h3>Comparable state × measure × transition detail</h3>
+  <p class="lede">Only rows that passed all of 2.3b / 2.3c / 2.3d. Use the filters; the table caps
+  at 400 rows for rendering.</p>
+  <div class="controls">
+    <label class="ctl">Class
+      <select id="d-class"><option value="">All</option><option>Improving</option>
+        <option>Declining</option><option>Stable</option></select></label>
+    <label class="ctl">Transition
+      <select id="d-trans"><option value="">All</option><option>2022-&gt;2023</option>
+        <option>2023-&gt;2024</option></select></label>
+    <label class="ctl">State contains<input type="search" id="d-state"></label>
+  </div>
+  <div id="d-count" class="measure-meta"></div>
+  <div class="card scroll"><table id="detail-table"></table></div>
+</main>
+<footer class="site" id="foot"></footer>
+
+<script src="assets/common.js"></script>
+<script>
+let T; const el=id=>document.getElementById(id);
+(async function(){
+  T = await CS.json('trend.json');
+  const meta = await CS.json('meta.json');
+  el('foot').innerHTML=`Generated ${meta.generated_utc} · window ${T.meta.window} · band ±${T.meta.class_band_sd} SD`;
+  el('mandatory').innerHTML=`<b>2.3a — mandatory-reporting discontinuity.</b> ${T.audit.mandatory_2024_note}`;
+
+  const a=T.audit;
+  el('audit-kpis').innerHTML=[
+    ['Measure series', a.n_measure_keys],
+    ['Trendable (computed)', a.n_trendable_computed],
+    ['Child / Adult trendable', `${a.n_trendable_by_program['Child Core Set']||0} / ${a.n_trendable_by_program['Adult Core Set']||0}`],
+  ].map(([k,v])=>`<div><div class="kpi">${v}<small>${k}</small></div></div>`).join('');
+  el('audit-caveat').textContent=a.caveat;
+
+  // baseline table
+  el('baseline').innerHTML=`<thead><tr>
+    <th>Program</th><th>Direction group</th><th>Transition</th>
+    <th class="num">Baseline mean Δ</th><th class="num">SD</th><th class="num">State-pairs</th>
+    </tr></thead><tbody>${T.baseline.map(b=>`<tr>
+      <td>${b.ReportProg.replace(' Core Set','')}</td><td>${b.MeasureType}</td><td>${b.transition}</td>
+      <td class="num">${CS.fmt(b.baseline_mean,2)}</td>
+      <td class="num">${CS.fmt(b.baseline_sd,2)}</td>
+      <td class="num">${b.n_pairs}</td></tr>`).join('')}</tbody>`;
+
+  el('s-prog').addEventListener('change',drawState);
+  drawState();
+  drawMeasureTable();
+
+  ['d-class','d-trans','d-state'].forEach(id=>el(id).addEventListener('input',drawDetail));
+  drawDetail();
+})();
+
+function drawState(){
+  const prog=el('s-prog').value;
+  const r=T.state_rollup.filter(x=>x.program===prog)
+          .sort((a,b)=>a.mean_improve_delta-b.mean_improve_delta);
+  Plotly.newPlot('state-chart',[{
+    type:'bar',orientation:'h',
+    x:r.map(x=>x.mean_improve_delta), y:r.map(x=>x.abbr),
+    marker:{color:r.map(x=>x.mean_improve_delta>=0?'#1a7f4b':'#b3341f')},
+    hovertext:r.map(x=>`${x.state}: ${x.n_improving}▲ / ${x.n_declining}▼ / ${x.n_stable}– · `+
+      `${x.n_persistent_bottom_measures} persistent-bottom`),
+    hovertemplate:'%{hovertext}<extra></extra>'
+  }],{
+    title:{text:prog+' — mean direction-adjusted Δ (▲ = improving)',font:{size:13}},
+    height:Math.max(360,15*r.length+60),margin:{l:44,r:14,t:34,b:34},
+    xaxis:{zeroline:true,zerolinecolor:'#98a2b3',gridcolor:'#eef0f2'},
+    yaxis:{automargin:true,tickfont:{size:10}}
+  },{displayModeBar:false,responsive:true});
+
+  const t=el('state-table');
+  t.innerHTML=`<thead><tr>
+    <th data-k>State</th><th data-k class="num">Region</th><th data-k class="num">Transitions</th>
+    <th data-k class="num">▲ Improving</th><th data-k class="num">▼ Declining</th><th data-k class="num">– Stable</th>
+    <th data-k class="num">Mean adj. Δ</th><th data-k class="num">Persistent-bottom</th>
+    </tr></thead><tbody>${r.map(x=>`<tr>
+      <td data-v="${x.state}">${x.state}</td>
+      <td class="num" data-v="${x.region||''}">${x.region||'–'}</td>
+      <td class="num">${x.n_transitions_scored}</td>
+      <td class="num">${x.n_improving}</td><td class="num">${x.n_declining}</td><td class="num">${x.n_stable}</td>
+      <td class="num" data-v="${x.mean_improve_delta}">${CS.fmt(x.mean_improve_delta,2)}</td>
+      <td class="num">${x.n_persistent_bottom_measures}</td></tr>`).join('')}</tbody>`;
+  CS.sortable(t);
+}
+
+function drawMeasureTable(){
+  const r=[...T.measure_rollup].sort((a,b)=>a.mean_improve_delta-b.mean_improve_delta).slice(0,40);
+  const t=el('measure-table');
+  t.innerHTML=`<thead><tr>
+    <th data-k>Program</th><th data-k>Domain</th><th data-k>Measure</th>
+    <th data-k class="num">▲</th><th data-k class="num">▼</th><th data-k class="num">–</th>
+    <th data-k class="num">Mean adj. Δ</th></tr></thead><tbody>${
+    r.map(x=>`<tr>
+      <td>${x.program.replace(' Core Set','')}</td><td>${x.domain}</td>
+      <td>${x.measure_name}</td>
+      <td class="num">${x.n_improving}</td><td class="num">${x.n_declining}</td><td class="num">${x.n_stable}</td>
+      <td class="num" data-v="${x.mean_improve_delta}">${CS.fmt(x.mean_improve_delta,2)}</td>
+    </tr>`).join('')}</tbody>`;
+  CS.sortable(t);
+}
+
+function drawDetail(){
+  const c=el('d-class').value, tr=el('d-trans').value.replace('&gt;','>'),
+        st=el('d-state').value.trim().toLowerCase();
+  let rows=T.detail.filter(d=>d.comparable);
+  if(c) rows=rows.filter(d=>d.classification===c);
+  if(tr) rows=rows.filter(d=>d.transition===tr);
+  if(st) rows=rows.filter(d=>d.state.toLowerCase().includes(st));
+  el('d-count').textContent=`${rows.length} comparable rows (showing first 400)`;
+  const t=el('detail-table');
+  t.innerHTML=`<thead><tr>
+    <th data-k>State</th><th data-k class="num">Reg</th><th data-k>Program</th><th data-k>Measure</th>
+    <th data-k>Transition</th><th data-k class="num">Δ rate</th><th data-k class="num">Adj. Δ</th>
+    <th data-k class="num">Baseline</th><th data-k>Class</th></tr></thead><tbody>${
+    rows.slice(0,400).map(d=>`<tr>
+      <td data-v="${d.state}">${d.state}</td>
+      <td class="num">${d.region||'–'}</td>
+      <td>${d.program.replace(' Core Set','')}</td>
+      <td>${d.measure_key.split(' | ').slice(1).join(' — ')}</td>
+      <td>${d.transition}</td>
+      <td class="num" data-v="${d.delta}">${CS.fmt(d.delta,2)}</td>
+      <td class="num" data-v="${d.improve_delta}">${CS.fmt(d.improve_delta,2)}</td>
+      <td class="num">${CS.fmt(d.baseline_mean,2)}</td>
+      <td data-v="${d.classification}">${CS.classPill(d.classification)}</td>
+    </tr>`).join('')}</tbody>`;
+  CS.sortable(t);
+}
+</script>
+</body>
+</html>

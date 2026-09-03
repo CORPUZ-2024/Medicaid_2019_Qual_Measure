@@ -1,0 +1,3 @@
+measure_name_contains,program,transition,ncqa_comparable,note,source
+Prenatal and Postpartum Care,,2023->2024,No,"Starting with the 2024 Core Set the measure was redefined to report the prenatal AND postpartum rates in a single measure (previously separate), with the eligible population defined differently by program (under-21 for Child; a different adult age band for Adult). A raw 2023->2024 comparison of this measure's rate compares two different quantities.",spec_v2_section_2.3c
+Contraceptive Care,,2023->2024,Unknown,"Placeholder row - confirm against the NCQA HEDIS Measure Trending Determinations memo for MY2024 before trusting any 2023->2024 line for this measure. Remove or set ncqa_comparable once verified.",analyst_todo

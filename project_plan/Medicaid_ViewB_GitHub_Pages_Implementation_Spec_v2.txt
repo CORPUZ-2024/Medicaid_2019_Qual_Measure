@@ -1,0 +1,471 @@
+IMPLEMENTATION SPEC (v2): Medicaid Child & Adult Core Set — View B Extension GitHub Page
+
+Repo: CORPUZ-2024/Medicaid_2019_Qual_Measure
+Data source: data.medicaid.gov — Quality theme (https://data.medicaid.gov/datasets?theme%5B0%5D=Quality)
+Scope: Items 1-4 of the V0 spec. Item 5 (README rewrite) remains excluded — see note at the end.
+
+CHANGES FROM v1:
+- Trend window changed from 4 years (2021-2024) to 3 years (2022-2024), to align exactly with
+  CMS's own official Core Set trending window rather than an independently adapted one.
+- Cost/dollar-impact estimation removed from the at-risk analysis (Section 3.2). That formula
+  was checked against actual per-measure cost literature and did not hold up consistently enough
+  across domains to belong in an implementation spec as a documented, reproducible methodology.
+  Section 3.2 now produces a beneficiary-count / risk-classification output only, no dollar figures.
+- Reporting and measure-specification changes — previously a couple of scattered mentions — are
+  now their own dedicated section (2.3), with more detail on what actually changes year to year
+  and why it matters for any line drawn across years.
+
+================================================================================
+0. GROUNDING: WHAT ALREADY EXISTS IN THE REPO
+================================================================================
+
+Before specifying anything new, here's what I confirmed by pulling the actual notebooks (not
+just the README):
+
+- 2019Medicaid.ipynb loads the FFY2019 CSV, drops unused columns, renames them
+  (Reporting Program -> ReportProg, Measure Name -> MeasureName, State Rate -> StateRate,
+  Bottom Quartile -> Bottom, Top Quartile -> Top), casts StateRate to numeric, derives Eval
+  (On Track / Not on Track = StateRate >= Median), and splits into Child_data / Adult_data by
+  ReportProg. View A is built from this.
+- View B.ipynb reads Child_Data only (%store -r), splits by Domain, and for each MeasureName
+  within a domain draws a horizontal plotly.express bar of StateRate by State, sorted ascending,
+  colored on a continuous scale keyed to the domain.
+- The README documents View A (state x domain snapshot) and View B (all-states x one-measure
+  snapshot), and flags a known data-quality issue: duplicate rows with identical descriptors but
+  different StateRate/Median/Top/Bottom values, resolved by keeping the first occurrence — this
+  is a decision, not a data guarantee.
+
+Two things follow directly from this:
+
+1. View B was never built for the Adult Core Set. The measure_name() function is generic (it
+   takes df1, color), but only Child_Data was ever piped into it. Extending to Adult is a
+   data-plumbing change, not a rewrite.
+2. View B has no cross-state summary layer. It renders one bar chart per measure and stops —
+   there's no "here are this domain's top/median/bottom states" rollup. That's new work.
+
+Confirmed schema (post-cleaning, both notebooks): State, ReportProg, Domain, MeasureName,
+MeasureType, MeasureAbbre, StateRate, Bottom, Median, Top, Eval, Population. The raw CMS files
+also carry FFY, Rate Definition, Methodology, Number of States Reporting, Notes, Source, State
+Specific Comments — dropped in 2019 but needed for a multi-year build (see 2.1).
+
+Domains differ by program and this matters for every visualization spec below:
+
+- Child Core Set (5 domains): Behavioral Health Care; Care of Acute and Chronic Conditions;
+  Dental and Oral Health Services; Maternal and Perinatal Health; Primary Care Access and
+  Preventive Care.
+- Adult Core Set (6 domains): Primary Care Access and Preventive Care; Maternal and Perinatal
+  Health; Care of Acute and Chronic Conditions; Behavioral Health Care; Experience of Care;
+  Long-Term Services and Supports (LTSS). No Dental domain. Experience of Care and LTSS are
+  CAHPS-survey-based and, per CMS's own trending criteria, are the two domains most often
+  excluded from trend analysis for data-consistency reasons.
+
+================================================================================
+1. VIEW B EXTENSION: ALL STATES x ALL MEASURES, ADULT + CHILD, 2024 SUMMARY
+================================================================================
+
+1.1 Data model changes
+-----------------------
+Generalize the existing measure_name(df1, color) function so it takes a ReportProg parameter and
+a domain-to-color-scale map for each program (the Child map already exists in
+2019Medicaid.ipynb's color_dict; build a parallel adult_color_dict for the 6 Adult domains).
+Concretely:
+
+    render_view_b(df, report_program, domain_color_map):
+        subset = df[df.ReportProg == report_program]
+        for domain in subset.Domain.unique():
+            for measure in subset[subset.Domain == domain].MeasureName.unique():
+                plot_data = subset[(subset.Domain==domain) & (subset.MeasureName==measure)]
+                plot_data = plot_data.drop_duplicates(subset=['State'], keep='first')
+                plot_data = plot_data.sort_values('StateRate', ascending=True)
+                bar_chart(plot_data, x='StateRate', y='State', color=StateRate,
+                          scale=domain_color_map[domain])
+
+Page structure on GitHub Pages: a top-level toggle for Child Core Set / Adult Core Set, then a
+domain accordion (5 or 6 sections depending on toggle state), then one bar chart per measure
+inside each domain section — this mirrors the notebook's existing loop order.
+
+1.2 Summary section (top / median / bottom performing states, 2024)
+----------------------------------------------------------------------
+This is the piece the current repo doesn't have at all.
+
+A. Per-measure summary card: for each MeasureName, surface the state at Top quartile, the state
+   closest to Median, and the state at Bottom quartile, alongside the number of states on/off
+   track (Eval). CMS's own quartile values are computed across all reporting states, not tied to
+   a specific state, so "top-performing state" for a measure is the state with the highest
+   StateRate, not necessarily equal to the Top column value — call this out explicitly in the UI.
+
+B. Composite state summary card (new derived metric): for each state, the share of its reported
+   2024 measures where Eval == 'On Track', split by Child/Adult.
+
+       OnTrackShare(state, program) = count(Eval == 'On Track', ReportProg == program,
+                                             State == state)
+                                       / count(ReportProg == program, State == state)
+
+   Cap this to states with a minimum reported-measure count (e.g., >= 10 of the ~20-33 measures
+   in the set) before ranking, and document the cutoff in the page footer.
+
+Grounding for what this should surface: CMS itself already publishes state mean/median/
+top-quartile/bottom-quartile rates for every publicly reported measure (25+ states reporting) in
+the Summary Performance Tables that ship with each year's Core Set data release — the "2024
+Summary of Performance for the Child Core Set" and "...Adult Core Set" (both released September
+2025). Treat those as the validation source before the page ships.
+
+1.3 Visualization spec
+-----------------------
+- Chart type: horizontal bar, one bar per state, sorted ascending — keep this, it's the whole
+  point of View B.
+- Color: continuous scale keyed to domain (existing color_dict pattern), plus a second visual
+  encoding for Eval so on-track/not-on-track is legible without hovering.
+- Summary card layout: 3-up (Top / Median / Bottom) per measure, using MeasureAbbre for compact
+  labels, MeasureName in hover/tooltip.
+- Page-level filter bar: Program (Child/Adult), Domain, Measure Type — MeasureType already exists
+  as a column and was previously unused in View B; surfacing it as a filter directly satisfies
+  "provide visuals for each adult and child sets by measure type."
+
+================================================================================
+2. THREE-YEAR TREND ANALYSIS (2022-2024), BASELINE DEFINITION, AND
+   HHS-REGION STRATIFICATION
+================================================================================
+
+2.1 Data sourcing
+-------------------
+CMS publishes a combined Child+Adult quality-measures file per Core Set year, structurally
+consistent with the 2019 file the repo already uses. For this build, the window is 2022-2024 —
+three vintages:
+
+    Core Set year | Data reflects care delivered in | Released
+    2022          | ~2021                             | Sept 2023
+    2023          | ~2022                              | Sept 2024
+    2024          | ~2023                              | Sept 2025
+
+This window was chosen deliberately to match CMS's own official trending product exactly — CMS's
+"Trends in State Performance: 2022 to 2024 Child and Adult Core Sets" (Sept 2025) covers this
+identical span. That alignment means results from this build can be checked directly against a
+CMS-published reference rather than an independently-defined comparison window, which was not
+true of a four-year (2021-2024) design.
+
+Each year's file is a separate download on data.medicaid.gov / catalog.data.gov (search pattern:
+"[year] Child and Adult Health Care Quality Measures Quality"). Pull all three, tag each with an
+added CoreSetYear column, and concatenate before doing anything else — the repo's 2019 pipeline
+was single-year and has no year column at all right now, so this is a schema addition.
+
+Before writing a single trend line, resolve the row-uniqueness question the README already
+flagged. The 2019 notebook's fix (drop duplicate descriptor rows, keep first) was a defensible
+one-year hack; across three years it will silently drop legitimate re-submissions or corrections
+if the same ambiguity pattern recurs per year. Dedupe key should be (CoreSetYear, State,
+ReportProg, Domain, MeasureName, Population) at minimum, and any row that still collides on that
+key needs to be logged to a data-quality exceptions file, not silently dropped.
+
+2.2 Baseline definition — average state rate change by measure type, by year
+--------------------------------------------------------------------------------
+This directly operationalizes item 2's instruction. Compute, for each (ReportProg, MeasureType)
+pair, the year-over-year change in StateRate averaged across all states that reported in both
+adjacent years:
+
+    DeltaRate(measure_type, program, year_t, year_t-1) =
+        mean over states s of [ StateRate(s, measure_type, program, year_t)
+                                - StateRate(s, measure_type, program, year_t-1) ]
+        — restricted to states s that reported in both year_t and year_t-1
+
+Run this for two transitions: 2022->2023 and 2023->2024. That average, per measure type per
+program, IS the baseline — a measure/state performing above its own measure-type's average YoY
+change is "improving faster than typical," below it is "lagging typical," and materially
+negative is "declining." This gives a data-driven baseline instead of an arbitrary fixed
+threshold, which matters because some measure types move a lot more year to year than others.
+
+Classify each state/measure as: Improving (Delta > baseline + 0.5 SD), Stable (within +/-0.5 SD
+of baseline), Declining (Delta < baseline - 0.5 SD), and separately flag Persistent Bottom
+Quartile — reported in Bottom-adjacent territory (bottom 25%) in at least 2 of the 3 years,
+regardless of direction of movement (a state can be "improving" and still be persistently in the
+bottom quartile if the whole distribution is shifting).
+
+Note the practical effect of the shorter window: with only two YoY transitions instead of three,
+the 2023->2024 transition — the one that crosses the mandatory-reporting boundary described in
+2.3 below — now accounts for half of the entire trend signal instead of a third of it. That's a
+direct consequence of matching CMS's shorter, more defensible window, and it raises the stakes
+on getting 2.3 right before any trend line ships.
+
+2.3 REPORTING & MEASURE SPECIFICATION CHANGES (dedicated section)
+--------------------------------------------------------------------------------
+This section exists on its own, rather than as a caveat inside 2.2 or the limitations list,
+because it is the single largest threat to the validity of any line drawn across 2022-2024, and
+it needs to be checked per measure, not assumed away once at the top of the pipeline.
+
+a) The mandatory-reporting discontinuity (2024)
+   Child Core Set reporting, and the behavioral health measures on the Adult Core Set, were
+   historically VOLUNTARY. Both became MANDATORY starting with the 2024 Core Set, for the 50
+   states, DC, Puerto Rico, the U.S. Virgin Islands, and Guam. This means the 2024 data point in
+   this build's trend window has a structurally different, larger, and more complete set of
+   reporting states than 2022 and 2023. A state showing a "decline" from 2023 to 2024 may simply
+   be a state that was not reporting consistently before and is now reporting a fuller — and
+   possibly less favorably selected — population, not a state whose care quality changed.
+
+b) CMS's own trendability criteria
+   CMS does not trend every measure it publishes. For a measure to be included in its own
+   2022-2024 trending product, it must meet three criteria simultaneously:
+     1. Publicly reported for all three years (2022, 2023, and 2024)
+     2. Reported by a consistent set of at least 20 states across all three years
+     3. Consistent measure specifications across all three years
+   Applying this filter to the full measure list, CMS found only 19 of the Child Core Set
+   measures and 22 of the Adult Core Set measures met all three criteria for the 2022-2024
+   window — a meaningful minority of the full measure list. This build should apply the same
+   three-part filter, using the same source CMS itself uses (its annual "Criteria for Using the
+   Child and Adult Core Set Measures to Assess Trends in State Performance" brief) rather than
+   inventing an independent trendability standard. Any measure that fails the filter should be
+   visibly marked "not trendable this cycle" in the UI rather than silently omitted or, worse,
+   plotted anyway.
+
+c) Specification changes, not just reporting-volume changes
+   Criterion 3 above (consistent specifications) catches a different failure mode than criterion
+   1 or 2: a measure can be reported by the same 40 states for three straight years and still be
+   non-comparable because CMS or the measure steward changed what is actually being counted. The
+   confirmed example in the current measure set: starting with the 2024 Core Set, the Prenatal
+   and Postpartum Care measure was redefined to include both the prenatal AND postpartum care
+   rates in a single measure (previously reported separately), with the eligible population
+   itself defined differently by program — under-21 beneficiaries for the Child Core Set, a
+   different age band for the Adult Core Set. A naive year-over-year comparison of this measure's
+   "rate" across 2023 and 2024 is comparing two different quantities, not the same quantity
+   measured twice.
+   CMS's own process for tracking this is worth mirroring: NCQA (the steward for most HEDIS-based
+   Core Set measures) issues an annual Measure Trending Determinations memo that states, per
+   measure, whether that year's HEDIS specification is comparable to the prior year's. CMS's
+   trending brief cites NCQA's Measurement Year determinations directly rather than assessing
+   comparability itself. This build's pipeline should ingest that same determination per measure
+   per year rather than assuming stability by default.
+
+d) "Other specifications" reporting
+   Independent of both (a) and (c), individual states are flagged in the source data when they
+   calculated a measure using "other specifications" — meaning the state deviated substantially
+   from the standard Core Set methodology (alternate data sources, different populations, etc.).
+   A state flagged this way in one year and not another should not be treated as a like-for-like
+   comparison in the trend view; this is a state-level, not a measure-level, comparability flag
+   and needs its own check independent of (b) and (c).
+
+Net effect for the pipeline: before any DeltaRate value from 2.2 is rendered as a trend line, it
+should pass all of: (i) the measure is on CMS's own trendable list for the relevant year pair
+[2.3b], (ii) the specific measure did not change specification between the two years being
+compared [2.3c], and (iii) neither state involved in the pairwise comparison is flagged "other
+specifications" for either year [2.3d]. A DeltaRate that fails any of these should render as
+"not comparable" rather than as a number.
+
+2.4 Regional stratification (HHS regions)
+--------------------------------------------
+The authoritative HHS region-to-state mapping (confirmed against CMS's own published reference):
+
+    Region  HQ              States/territories
+    1       Boston          CT, ME, MA, NH, RI, VT
+    2       New York        NJ, NY, PR, USVI
+    3       Philadelphia    DE, DC, MD, PA, VA, WV
+    4       Atlanta         AL, FL, GA, KY, MS, NC, SC, TN
+    5       Chicago         IL, IN, MI, MN, OH, WI
+    6       Dallas          AR, LA, NM, OK, TX
+    7       Kansas City     IA, KS, MO, NE
+    8       Denver          CO, MT, ND, SD, UT, WY
+    9       San Francisco   AZ, CA, HI, NV (+ Pacific territories)
+    10      Seattle         AK, ID, OR, WA
+
+Add an HHSRegion column via a static lookup table keyed on State, then re-run the exact 2.2
+calculation with HHSRegion as an added groupby dimension, subject to the same 2.3 comparability
+gating. Output the same Improving/Stable/Declining/Persistent-Bottom classification at the
+region level, and compute a region-vs-national-baseline delta so the page can say, concretely,
+"Region 4's Behavioral Health Care measures declined X points more than the national average
+between 2023 and 2024" rather than a vaguer regional narrative.
+
+Note the existing repo already has an ad hoc, incomplete four-region grouping (NE_states,
+W_states, S_states, midwest_states in 2019Medicaid.ipynb) built for View A — it's missing Alaska,
+Hawaii, and DC as written, and it isn't the HHS region scheme this spec asks for. Retire it in
+favor of the table above rather than reconciling the two.
+
+2.5 Narrative-generation spec (agency reports + peer-reviewed literature)
+--------------------------------------------------------------------------------
+For any measure/state/region flagged Declining or Persistent-Bottom-Quartile — and that has
+passed the 2.3 comparability gate — the page should attach short, sourced context rather than
+just a number. Two source tracks, kept visually distinct since they answer different "why"
+questions:
+
+- Implementation/funding track — CMS State Health Official letters and Mathematica's own annual
+  reporting products (Fact Sheet for Core Sets Reporting, Overview of State Reporting, Trending
+  Criteria Methods Brief) document which states didn't report a given measure or used "other
+  specifications" — check this before attributing a decline to clinical/access factors (this is
+  the same check as 2.3d, applied narratively rather than as a gate).
+- Clinical/access/equity track — peer-reviewed literature (PubMed/PMC) on the specific measure
+  domain, pulled per-flagged-measure, since different measures have different relevant
+  literatures entirely.
+
+Both tracks should render as 1-2 sentence, attributed summaries with a source link — not full
+reproductions of the source text.
+
+================================================================================
+3. POLICY/FUNDING LANDSCAPE AND AT-RISK ANALYSIS
+================================================================================
+
+3.1 Legislation/funding landscape (item 3a)
+----------------------------------------------
+The single most consequential current input here is the 2025 federal budget reconciliation law
+(H.R. 1 / "One Big Beautiful Bill Act"), which restructures Medicaid financing in ways that bear
+directly on quality-measure trajectories going forward:
+
+- It imposes new work-and-reporting requirements on ACA expansion adults starting January 1,
+  2027, which requires states to build new eligibility-verification and data-sharing
+  infrastructure — administrative capacity that competes directly with the staff and systems
+  capacity states use for Core Set reporting and quality improvement work.
+- It restricts states' use of provider taxes to help finance their Medicaid share, and reduces
+  federal matching in ways multiple independent estimates put at roughly $900 billion-$1
+  trillion in reduced federal Medicaid spending over ten years.
+- Because states fund well under half of total Medicaid spending on average (roughly 35% in
+  FFY2024), a state-side funding reduction has an amplified effect on total program spending.
+- States are already responding unevenly (some absorbing costs into general funds and phasing in
+  work requirements, others more exposed to the provider-tax and expansion-financing changes) —
+  this state-by-state variation is exactly what a regional/state at-risk view should be built to
+  surface.
+
+Spec for this section of the page: a short, dated policy-context panel (manually curated,
+periodically updated markdown block — this needs to sit outside the annual data-refresh cycle
+since legislative status changes faster than that) summarizing the current landscape with links
+to primary sources (KFF, Commonwealth Fund, CMS SHO letters, the Federal Register rule on
+mandatory Core Set reporting). Treat it as forward-looking context, not causally attributed to
+specific 2022-2024 measure movements — the reconciliation law postdates the 2024 Core Set data
+entirely, so its effects on quality measures aren't observable yet in this dataset.
+
+3.2 At-risk / positioned-for-success scoring (item 3b)
+-----------------------------------------------------------
+Risk score components, computed per state (or per HHS region, aggregated) and documented so the
+score is reproducible, not a black box:
+
+1. Trend exposure — from 2.2/2.3/2.4: count of the state's measures currently classified
+   Declining or Persistent-Bottom-Quartile among those that passed the 2.3 comparability gate,
+   weighted by domain (Behavioral Health Care and LTSS weighted higher, since those are the
+   domains most directly touched by administrative-capacity strain from new eligibility/work-
+   requirement systems).
+2. Fiscal exposure — from public sources only (state Medicaid expansion status, reliance on
+   provider taxes, state-reported budget-shortfall estimates where states have published them).
+   This is a categorical/ordinal input (Low/Medium/High), not a modeled dollar figure, because
+   the underlying state-by-state fiscal exposure estimates aren't uniformly available or
+   comparable across all 50 states as of this writing.
+3. Reporting-capacity exposure — states that only became mandatory Core Set reporters in 2024
+   carry more measurement uncertainty (see 2.3a) and are more exposed to a data-quality flag
+   masquerading as a performance flag.
+
+Beneficiary-impact scope estimate (item 3b's "# of benes" component only):
+
+    Affected Beneficiaries (state, measure) =
+        State Medicaid/CHIP Enrollment (state, most recent CMS enrollment report)
+        x Measure-Eligible Population Share (from the measure's own denominator definition,
+           e.g., "children 12-24 months" for an immunization measure)
+        x (Baseline On-Track Rate - Projected Rate under Declining trend)
+
+This produces a magnitude estimate — how many beneficiaries are plausibly touched by a given
+Declining classification — not a dollar figure. Dollar/cost-impact estimation is intentionally
+out of scope for this revision: a per-measure review of the underlying cost literature found
+that the relationship between a Core Set rate and avoidable utilization cost is not consistent
+enough across measure domains to document as a single reproducible methodology (in at least one
+major domain — Behavioral Health Care follow-up measures — the best available claims-based
+study found the assumed direction of the cost relationship to be reversed). If cost estimation
+is added back in a future revision, it should be built and documented per measure against a
+domain-specific cost study, not as one general formula, and each domain's estimate should state
+plainly whether its direction and unit have been empirically validated for that specific measure.
+
+================================================================================
+4. LIMITATIONS OF THIS APPROACH
+================================================================================
+
+1. The 2022-2024 window still straddles the reporting-regime change, and the shorter window
+   makes it a bigger share of the signal, not a smaller one. With only two year-over-year
+   transitions instead of three, the 2023->2024 transition — the one crossing the
+   voluntary-to-mandatory reporting boundary — now makes up half the trend analysis instead of a
+   third of it. See 2.3a for the mechanism and 2.3 generally for the required gating before any
+   line is drawn.
+
+2. This window is now identical to CMS's own validated 2022-2024 trending window, which is a
+   genuine improvement over an independently-defined four-year window — but alignment on the
+   window doesn't by itself resolve comparability. The per-measure trendability filter, the
+   specification-change check, and the "other specifications" flag (all in 2.3) still have to be
+   applied; matching CMS's date range without matching CMS's own filtering criteria would still
+   produce a misleading result.
+
+3. "Baseline = average YoY change" is a relative, not absolute, standard. If every state's
+   performance on a measure type declines in a given year, the baseline itself shifts down, and
+   a state merely tracking the new, worse baseline reads as "Stable" rather than "Declining." The
+   baseline flags relative outliers, not absolute quality — state this plainly in the page's own
+   methodology section.
+
+4. Row-level ambiguity in the source data is a real, documented limitation of this repo already
+   — the "identical descriptor, different rate" issue the README flags for 2019 has no reason to
+   have disappeared in later years, and the "keep first occurrence" fix is arbitrary. A
+   three-year pipeline compounds this risk and needs a logged exceptions report, not a silent
+   resolution.
+
+5. The 25-state minimum-reporting threshold for public release means state-level and
+   measure-level coverage is uneven and non-random. States that don't clear that threshold for a
+   given measure simply don't appear — "bottom quartile" and "not reported" are different things
+   that a naive groupby can conflate if nulls aren't handled explicitly.
+
+6. The beneficiary-impact estimate in 3.2 is a magnitude estimate only, built on the same
+   trend-classification logic as Section 2 — it inherits every limitation above (comparability
+   gating, relative baseline, reporting-regime effects) rather than being an independent,
+   more-certain number. It should not be read as more precise than the Declining/Stable
+   classification feeding into it.
+
+7. The policy/funding analysis in 3.1 is necessarily forward-looking and time-sensitive — the
+   2025 reconciliation law's major provisions (work requirements, financing changes) don't take
+   effect until 2027 and postdate every year of data in this analysis. Treating it as an
+   explanation for 2022-2024 movements would be a causal claim the data can't support; its
+   correct role is contextualizing risk for future Core Set cycles, and that distinction needs to
+   be explicit on the page.
+
+8. Regional (HHS) aggregation can mask within-region heterogeneity. A region can post a "stable"
+   average while containing one state improving sharply and another declining sharply — the
+   region-level view in 2.4 should always link through to the state-level view in 1-2, never
+   stand alone as the only lens.
+
+9. Scope boundary: this spec covers the Core Set quality-measure data itself. It does not
+   incorporate claims-level utilization data, managed-care-plan-level performance, or
+   state-specific Medicaid waiver terms, all of which materially affect measure performance but
+   sit outside the data.medicaid.gov Quality theme this project is scoped to. It also does not
+   attempt to translate measure performance into dollar cost, for the reasons given in 3.2.
+
+================================================================================
+APPENDIX A — SUGGESTED REPO STRUCTURE FOR IMPLEMENTATION
+================================================================================
+
+Medicaid_2019_Qual_Measure/
+├── data/
+│   ├── raw/                          # one CSV per Core Set year (2022, 2023, 2024), untouched
+│   ├── processed/                    # cleaned, concatenated, CoreSetYear-tagged
+│   └── region_lookup.csv             # State -> HHS Region static table (2.4)
+├── notebooks/
+│   ├── 01_ingest_clean.ipynb         # generalizes 2019Medicaid.ipynb's cleaning steps
+│   ├── 02_view_b_adult_child.ipynb   # Section 1
+│   ├── 03_trend_baseline.ipynb       # 2.2
+│   ├── 04_specification_change_audit.ipynb   # 2.3 — trendability + spec-change gating
+│   ├── 05_regional_stratification.ipynb      # 2.4
+│   └── 06_risk_scoring.ipynb         # 3.2 (beneficiary-count only, no cost)
+├── docs/                             # GitHub Pages source
+│   ├── methodology/                  # per-metric documentation
+│   └── policy-context.md             # manually curated, dated (3.1)
+└── README.md                         # excluded from this spec (item 5)
+
+================================================================================
+APPENDIX B — PRIMARY DATA & METHODOLOGY SOURCES REFERENCED IN THIS SPEC
+================================================================================
+
+- Child/Adult Core Set quality-measures datasets (per year): data.medicaid.gov, Quality theme
+- 2024 Summary of Performance for the Child/Adult Core Sets (Sept 2025) — validation source for 1.2
+- Trends in State Performance: 2022 to 2024 Child and Adult Core Sets (Sept 2025) — the window and
+  methodology precedent this build now matches exactly (2.1, 2.3)
+- Criteria for Using the 2024 Child and Adult Core Set Measures to Assess Trends in State
+  Performance (Sept 2025) — source of the trendability criteria mirrored in 2.3b
+- NCQA HEDIS Measure Trending Determinations (annual, by Measurement Year) — source for the
+  specification-comparability check in 2.3c
+- 2024 Core Set Reporting Fact Sheet — mandatory-reporting-transition source for 2.3a and
+  Limitation #1
+- KFF: "Medicaid: What to Watch in 2026"; "A Closer Look at the Work Requirement Provisions in
+  the 2025 Federal Budget Reconciliation Law"; "A Closer Look at California's Plans to Implement
+  Work Requirements..." — 3.1
+- Commonwealth Fund: "States Respond to Medicaid Cuts" (Oct 2025) — 3.1
+- HHS Regional Offices structure (CMS-published reference) — 2.4
+
+--------------------------------------------------------------------------------
+Item 5 (rewriting the repo's README to document this methodology as an extension of the
+2022-vintage scope) remains excluded from this document per your instruction and isn't
+addressed above.

@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>View B Extension — Medicaid Child &amp; Adult Core Set</title>
+<link rel="stylesheet" href="assets/style.css">
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+</head>
+<body>
+<header class="site">
+  <h1>Core Set · View B Extension</h1>
+  <nav>
+    <a href="index.html">View B (2024)</a>
+    <a href="trends.html">Trends 2022–24</a>
+    <a href="regional.html">Regional</a>
+    <a href="risk.html">At-Risk Analysis</a>
+    <a href="policy.html">Policy Context</a>
+    <a href="limitations.html">Limitations</a>
+    <a href="methodology.html">Methodology</a>
+  </nav>
+</header>
+<main>
+  <h2>All states × all measures — Adult + Child, 2024</h2>
+  <p class="lede">Section 1 of the v2 implementation spec. The original repo built View B for the
+  Child Core Set only; this extends it to both programs, every measure, with a cross-state
+  summary layer the repo did not have. Data: data.medicaid.gov, Quality theme.</p>
+
+  <div class="card" id="kpis"><div class="grid c3"></div></div>
+
+  <div class="card">
+    <div class="controls">
+      <label class="ctl">Program
+        <select id="f-program"></select></label>
+      <label class="ctl">Domain
+        <select id="f-domain"></select></label>
+      <label class="ctl">Direction (CMS “Measure Type”)
+        <select id="f-dir">
+          <option value="">All</option>
+          <option value="higher_better">Higher is better</option>
+          <option value="lower_better">Lower is better</option>
+        </select></label>
+      <label class="ctl">Find measure
+        <input type="search" id="f-q" placeholder="name contains…"></label>
+    </div>
+    <div class="note">“Measure Type” in the source data is a direction flag, not a taxonomy — see
+      <a href="methodology.html#measure-type">methodology</a>. Bars show each state’s reported
+      rate for 2024, sorted ascending; colour encodes the rate on a domain scale and the marker
+      outline encodes on/off track vs the CMS median.</div>
+    <div id="measure-count" class="measure-meta"></div>
+  </div>
+
+  <div id="measures"></div>
+
+  <h2>Composite state summary — On-Track share, 2024</h2>
+  <p class="lede">Section 1.2.B. For each state, the share of its reported 2024 measures where the
+  state is on track (rate at least as good as the CMS median, direction-aware), split by program.
+  States below the reported-measure cutoff (<span id="cutoff"></span>) are shown but flagged and
+  excluded from ranking.</p>
+  <div class="grid c2">
+    <div class="card"><div id="composite-child" class="chart"></div></div>
+    <div class="card"><div id="composite-adult" class="chart"></div></div>
+  </div>
+  <div class="card scroll"><table id="composite-table"></table></div>
+</main>
+<footer class="site" id="foot"></footer>
+
+<script src="assets/common.js"></script>
+<script>
+let VB;
+const el = id => document.getElementById(id);
+
+(async function(){
+  VB = await CS.json('view_b.json');
+  const meta = await CS.json('meta.json');
+  el('cutoff').textContent = `≥ ${10} measures`;
+  el('foot').innerHTML =
+    `Generated ${meta.generated_utc} · ${CS.fmt(meta.canonical_rows,0)} canonical rows · `+
+    `${meta.n_states} reporting states · spec: <code>${meta.spec}</code>`;
+
+  // KPIs
+  const m = VB.measures;
+  const byProg = p => m.filter(x=>x.program===p);
+  el('kpis').querySelector('.grid').innerHTML = [
+    ['Measure series (2024)', m.length, 'ReportProg × Measure × Rate Definition'],
+    ['Child series', byProg('Child Core Set').length, ''],
+    ['Adult series', byProg('Adult Core Set').length, ''],
+  ].map(([k,v,s])=>`<div><div class="kpi">${CS.fmt(v,0)}<small>${k}${s?' — '+s:''}</small></div></div>`).join('');
+
+  // filters
+  const fp=el('f-program'), fd=el('f-domain');
+  VB.programs.forEach(p=>fp.add(new Option(p,p)));
+  function fillDomains(){
+    fd.innerHTML='';
+    (VB.domains[fp.value]||[]).forEach(d=>fd.add(new Option(d,d)));
+  }
+  fp.value='Child Core Set'; fillDomains();
+  [fp].forEach(x=>x.addEventListener('change',()=>{fillDomains();render();}));
+  ['f-domain','f-dir','f-q'].forEach(id=>el(id).addEventListener('input',render));
+
+  render();
+  renderComposite();
+})();
+
+function render(){
+  const prog=el('f-program').value, dom=el('f-domain').value,
+        dir=el('f-dir').value, q=el('f-q').value.trim().toLowerCase();
+  let list=VB.measures.filter(x=>x.program===prog && x.domain===dom);
+  if(dir) list=list.filter(x=>x.direction===dir);
+  if(q) list=list.filter(x=>(x.measure_name+' '+x.rate_definition).toLowerCase().includes(q));
+  el('measure-count').textContent=`${list.length} measure series in “${dom}”`;
+  const host=el('measures'); host.innerHTML='';
+  list.forEach((mm,i)=>{
+    const div=document.createElement('div'); div.className='measure-block';
+    const c=mm.summary_card;
+    div.innerHTML=`
+      <h3>${mm.measure_name}</h3>
+      <div class="measure-meta">${mm.rate_definition} · <b>${mm.measure_abbr||''}</b> ·
+        ${mm.measure_type_label} · ${mm.n_states_reported} states reported ·
+        CMS median ${CS.fmt(mm.cms_median)} · bottom Q ${CS.fmt(mm.cms_bottom_quartile)} ·
+        top Q ${CS.fmt(mm.cms_top_quartile)} ·
+        ${CS.pill('good',mm.n_on_track+' on track')} ${CS.pill('bad',mm.n_not_on_track+' not')}</div>
+      <div class="summary3">
+        ${card('Top-performing state',c.top_state)}
+        ${card('Closest to cohort median',c.median_state)}
+        ${card('Bottom-performing state',c.bottom_state)}
+      </div>
+      <div class="note">${c.note}</div>
+      <div class="chart" id="ch-${i}"></div>`;
+    host.appendChild(div);
+    drawBars(`ch-${i}`, mm);
+  });
+}
+function card(lab,s){
+  if(!s||!s.state) return `<div class="card"><div class="lab">${lab}</div><div class="st">–</div></div>`;
+  return `<div class="card"><div class="lab">${lab}</div>
+    <div class="st">${s.state}</div><div class="rt">${CS.fmt(s.rate)}</div>
+    ${s.cohort_median!==undefined?`<div class="lab">median ${CS.fmt(s.cohort_median)}</div>`:''}</div>`;
+}
+function drawBars(id, mm){
+  const b=mm.bars;
+  // Fill = rate on the domain colour scale (View B's original encoding).
+  // Second encoding for Eval: states Not on Track get a crisp dark-red outline.
+  const lw=b.map(x=>x.eval==='Not on Track'?2:0);
+  Plotly.newPlot(id,[{
+    type:'bar',orientation:'h',
+    x:b.map(x=>x.rate), y:b.map(x=>x.abbr||x.state),
+    marker:{color:b.map(x=>x.rate),colorscale:mm.color_scale,
+            line:{color:'#8a1f0f',width:lw}},
+    hovertext:b.map(x=>`${x.state} · ${x.eval||'n/a'} · Region ${x.region||'–'}`),
+    hovertemplate:'%{hovertext}<br>rate %{x}<extra></extra>'
+  }],{
+    height:Math.max(300, 15*b.length+78),
+    margin:{l:44,r:14,t:22,b:34},
+    bargap:0.18,
+    xaxis:{title:'State rate',zeroline:false,gridcolor:'#eef0f2'},
+    yaxis:{automargin:true,tickfont:{size:9.5}},
+    shapes: mm.cms_median!=null ? [{type:'line',x0:mm.cms_median,x1:mm.cms_median,
+      yref:'paper',y0:0,y1:1,line:{color:'#2557a7',width:1.5,dash:'dot'}}] : [],
+    annotations: mm.cms_median!=null ? [{x:mm.cms_median,yref:'paper',y:1.02,
+      text:'CMS median',showarrow:false,font:{size:10,color:'#2557a7'}}] : []
+  },{displayModeBar:false,responsive:true});
+}
+
+function renderComposite(){
+  const rows=VB.composite;
+  for(const [prog,div] of [['Child Core Set','composite-child'],['Adult Core Set','composite-adult']]){
+    const r=rows.filter(x=>x.program===prog && x.meets_ranking_cutoff)
+                .sort((a,b)=>a.on_track_share-b.on_track_share);
+    Plotly.newPlot(div,[{
+      type:'bar',orientation:'h',
+      x:r.map(x=>x.on_track_share*100), y:r.map(x=>x.abbr),
+      marker:{color:r.map(x=>x.on_track_share*100),colorscale:'Blues'},
+      hovertext:r.map(x=>`${x.state}: ${x.measures_on_track}/${x.measures_reported} on track`),
+      hovertemplate:'%{hovertext}<extra></extra>'
+    }],{
+      title:{text:prog+' — % of measures on track',font:{size:13}},
+      height:Math.max(340,15*r.length+60),margin:{l:44,r:14,t:34,b:34},
+      xaxis:{ticksuffix:'%',range:[0,100],gridcolor:'#eef0f2'},
+      yaxis:{automargin:true,tickfont:{size:10}}
+    },{displayModeBar:false,responsive:true});
+  }
+  const t=el('composite-table');
+  t.innerHTML=`<thead><tr>
+    <th data-k>State</th><th data-k>Program</th><th data-k class="num">Reported</th>
+    <th data-k class="num">On track</th><th data-k class="num">On-track share</th><th data-k>Ranked?</th>
+    </tr></thead><tbody>${
+    rows.map(r=>`<tr>
+      <td data-v="${r.state}">${r.state}</td>
+      <td>${r.program.replace(' Core Set','')}</td>
+      <td class="num" data-v="${r.measures_reported}">${r.measures_reported}</td>
+      <td class="num" data-v="${r.measures_on_track}">${r.measures_on_track}</td>
+      <td class="num" data-v="${r.on_track_share}">${CS.pct(r.on_track_share,0)}</td>
+      <td>${r.meets_ranking_cutoff?CS.pill('good','yes'):CS.pill('warn','below cutoff')}</td>
+    </tr>`).join('')}</tbody>`;
+  CS.sortable(t);
+}
+</script>
+</body>
+</html>
