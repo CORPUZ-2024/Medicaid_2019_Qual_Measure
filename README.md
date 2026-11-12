@@ -1,4 +1,4 @@
-# Medicaid Child &amp; Adult Core Set — View B Extension (2022–2024)
+# Child and Adult Health Care Quality Measures (2022–2024) — 2026 Version V2
 
 Cross-state quality-measure visualization and trend analysis for the CMS
 Medicaid/CHIP **Child and Adult Core Sets**, built on the
@@ -6,24 +6,48 @@ Medicaid/CHIP **Child and Adult Core Sets**, built on the
 
 This project began as a single-year (FFY2019) visualization of *View A* (a
 state × domain snapshot) and *View B* (all states for one measure). Those
-original notebooks now live on the
-[**`2022_Version`** branch](../../tree/2022_Version). `master` extends the View B
-idea to the **2022, 2023, and 2024** Core Set vintages and adds trend, regional,
-policy, and at-risk analysis layers, implemented per
-[`project_plan/Medicaid_ViewB_GitHub_Pages_Implementation_Spec_v2.txt`](project_plan/Medicaid_ViewB_GitHub_Pages_Implementation_Spec_v2.txt).
+original notebooks live on the [**`2022_Version`** branch](../../tree/2022_Version).
+The 2022–2024 expansion (trend, regional, policy and at-risk layers) is preserved
+as **2026 Version V1 (Expanded Scope)** on the
+[**`2026_Version_V1_Expanded_Scope`** branch](https://github.com/CORPUZ-2024/Medicaid_2019_Qual_Measure/tree/2026_Version_V1_Expanded_Scope).
+`main` is **Version V2**: a focused edit of V1, logged in
+[`project_plan/2026_V2_Final_Edits_Change_Log.md`](project_plan/2026_V2_Final_Edits_Change_Log.md).
 
 ## 🔗 Interactive site
 
 **https://corpuz-2024.github.io/Medicaid_2019_Qual_Measure/** — source in [`docs/`](docs/)
-*(enable once via Settings → Pages → Deploy from a branch → `master` / `/docs`)*
+*(Settings → Pages → Deploy from a branch → `main` / `/docs`)*
 
-| Page | What it shows |
+| Tab | What it shows |
 |------|---------------|
-| [View B (2024)](https://corpuz-2024.github.io/Medicaid_2019_Qual_Measure/) | Every measure, **both** Core Sets, all states — sorted bars, per-measure top/median/bottom-state cards, composite on-track share |
+| [Policy Context](https://corpuz-2024.github.io/Medicaid_2019_Qual_Measure/) | **First tab.** Why Core Set reporting matters (significance, requirements, cadence, link to reimbursement / value-based care); the current policy and funding landscape including the Nov 2026 midterms; how those changes may show up in quality measures vs other metrics. Primary sources linked. |
+| [(A) 2024 Measures by State and Domain](https://corpuz-2024.github.io/Medicaid_2019_Qual_Measure/state-domain.html) | **New.** Top / bottom 10 states by % of reported measures above the CMS median per domain; a filterable state × domain rate table (View A style); a domain composite chart and table (states, distinct measures, % of states above median, reporting variation) |
+| [(B) 2024 Across all States by Measure Type and Domain](https://corpuz-2024.github.io/Medicaid_2019_Qual_Measure/measures.html) | Formerly "View B (2024)". Every measure, both Core Sets, all states — per-program domain toolbar, follow-up period in non-distinct titles, red dashed underperforming line, composite on-track share across all domains, Child vs Adult table by state |
 | [Trends 2022–24](https://corpuz-2024.github.io/Medicaid_2019_Qual_Measure/trends.html) | Data-driven baseline; Improving / Stable / Declining / Persistent-Bottom; comparability gate |
-| [Regional](https://corpuz-2024.github.io/Medicaid_2019_Qual_Measure/regional.html) | The same trend stratified by HHS region, vs the national average |
-| [At-Risk Analysis](https://corpuz-2024.github.io/Medicaid_2019_Qual_Measure/risk.html) | Component-wise state risk index (trend / fiscal / reporting-capacity exposure) |
-| [Policy Context](https://corpuz-2024.github.io/Medicaid_2019_Qual_Measure/policy.html) · [Limitations](https://corpuz-2024.github.io/Medicaid_2019_Qual_Measure/limitations.html) · [Methodology](https://corpuz-2024.github.io/Medicaid_2019_Qual_Measure/methodology.html) | Dated policy panel, scope caveats, and how every number is produced |
+| [Limitations](https://corpuz-2024.github.io/Medicaid_2019_Qual_Measure/limitations.html) · [Methodology](https://corpuz-2024.github.io/Medicaid_2019_Qual_Measure/methodology.html) | Scope caveats and how every number is produced |
+| [V1 archive](https://corpuz-2024.github.io/Medicaid_2019_Qual_Measure/v1/) | The previous site, frozen, including the removed tabs |
+
+### What changed in V2 (vs V1)
+
+- **Removed tabs: Regional and At-Risk Analysis.** Their pages, JSON, code
+  (`regional.py`, `risk.py`), notebooks 05/06 and risk reference inputs are
+  removed from `main`. See the [2026 Version V1 (Expanded Scope)](https://github.com/CORPUZ-2024/Medicaid_2019_Qual_Measure/tree/2026_Version_V1_Expanded_Scope) branch,
+  or the live copy at [`/v1/`](https://corpuz-2024.github.io/Medicaid_2019_Qual_Measure/v1/risk.html).
+- **Site renamed** from "Core Set · View B Extension" to **Child and Adult Health
+  Care Quality Measures**.
+- **Policy Context is now the first tab and was rewritten** (last reviewed
+  2026-11-12). The V1 panel's content is kept in its §4.
+- **New tab (A) 2024 Measures by State and Domain** (see table above).
+- **View B renamed to (B) 2024 Across all States by Measure Type and Domain** with:
+  a domain toolbar that lists only that program's domains; follow-up periods
+  appended to non-distinct measure titles; one red dashed median line instead of
+  red bar borders; a note that the composite pools all measures across all
+  domains; the Ranked column dropped; the bottom table now one row per state
+  (Child % and Adult %, sorted by Child − Adult descending, gap not shown).
+
+> The sections below describe the V1 build that V2 inherits. Items marked
+> *(V1 only)* were removed from `main` in V2 and live on the
+> [`2026_Version_V1_Expanded_Scope`](https://github.com/CORPUZ-2024/Medicaid_2019_Qual_Measure/tree/2026_Version_V1_Expanded_Scope) branch.
 
 ## What changed — **scope**
 
@@ -40,11 +64,12 @@ policy, and at-risk analysis layers, implemented per
   stayed in the bottom quartile, measured against a **data-driven baseline** —
   the average rate change by program × measure direction for each year
   transition, rather than a fixed threshold.
-- **HHS-region stratification** (the 10-region CDC/HHS scheme), replacing the
+- *(V1 only)* **HHS-region stratification** (the 10-region CDC/HHS scheme), replacing the
   2019 notebook's ad hoc four-region grouping (which omitted AK, HI, and DC).
-- **Analysis sections:** a dated policy/funding panel (2025 reconciliation law,
+- **Analysis sections:** a dated policy/funding panel (kept and rewritten in V2) (2025 reconciliation law,
   the 2024 voluntary→mandatory reporting transition) and an at-risk /
-  positioned-for-success score with a **beneficiary-magnitude** estimate.
+  positioned-for-success score with a **beneficiary-magnitude** estimate
+  *(V1 only)*.
   Dollar / increased-utilization-cost impact is **deliberately out of scope** —
   the rate-to-cost relationship was not consistent enough across domains to
   document as one reproducible formula.
@@ -75,25 +100,26 @@ policy, and at-risk analysis layers, implemented per
   specification did not change between those years, and neither state used
   "other specifications" — otherwise it renders **"Not comparable"**. The 2024
   mandatory-reporting change is carried as an explicit caveat.
-- **Risk score is transparent, not modelled.** Every component (trend exposure,
+- *(V1 only)* **Risk score is transparent, not modelled.** Every component (trend exposure,
   ordinal fiscal exposure, reporting-capacity exposure) is echoed back per
   state. Inputs that need an external source live in `data/reference/`; until an
   analyst fills them, the dependent output is `null`, never a guessed number.
 - **Reproducible package, not just notebooks.** Logic lives in `src/coreset/`;
-  `python run.py` rebuilds `docs/data/*.json` end to end. The six notebooks
+  `python run.py` rebuilds `docs/data/*.json` end to end. The notebooks
   under `notebooks/` are thin, executable wrappers over that package.
 
 ## Repository layout
 
 ```
-src/coreset/      ingest · clean · viewb · trend · spec_audit · regional · risk · build
+src/coreset/      ingest · clean · viewb · trend · spec_audit · regions · build
 run.py            orchestrator:  python run.py [--fetch]
 data/raw/         2022 / 2023 / 2024 Core Set CSVs (data.medicaid.gov, untouched)
-data/reference/   analyst-maintained inputs (trendable list, fiscal exposure, enrollment)
+data/reference/   analyst-maintained inputs (trendable list, spec changes)
 data/processed/   generated: cleaned panel + DQ exception log
-notebooks/        01–06, one per Appendix-A step
+notebooks/        01–04, one per Appendix-A step (05/06 are V1 only)
 docs/             GitHub Pages site (static HTML + Plotly, reads docs/data/*.json)
-project_plan/     the V0 and v2 implementation specs
+docs/v1/          frozen copy of the V1 site
+project_plan/     the V0 and v2 implementation specs + V2 change log
 ```
 
 ## Run locally

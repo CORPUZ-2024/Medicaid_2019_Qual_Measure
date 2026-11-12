@@ -60,33 +60,6 @@ NOTEBOOKS = {
         ("code", "g = spec_audit.gate_trend_detail(trend.classify(df)['detail'], df)\n"
                  "pd.Series([d['classification_display'] for d in g]).value_counts()"),
     ],
-    "05_regional_stratification.ipynb": [
-        ("md", "# 05 · HHS-region stratification (spec 2.4)\n\n"
-               "Section 2.2 re-run with HHSRegion added, over gated-comparable pairs only, "
-               "with a region-vs-national delta. The 2019 notebook's ad hoc 4-region grouping is retired."),
-        ("code", BOOT + "from coreset import clean, trend, spec_audit, regional"),
-        ("code", "df = clean.load_clean()\n"
-                 "g = spec_audit.gate_trend_detail(trend.classify(df)['detail'], df)\n"
-                 "reg = regional.regional_trends(g)\npd.DataFrame(reg['region_overall'])"),
-        ("code", "pd.DataFrame(reg['highlights']['most_below_national'])"),
-    ],
-    "06_risk_scoring.ipynb": [
-        ("md", "# 06 · At-risk scoring (spec 3.2)\n\n"
-               "Component-wise composite risk (trend / fiscal / reporting-capacity exposure). "
-               "Beneficiary **magnitude** only — no dollar figure (out of scope in v2). "
-               "Reference tables in `data/reference/` are analyst-maintained; missing inputs "
-               "yield `null`, never a fabricated number."),
-        ("code", BOOT + "from coreset import clean, trend, spec_audit, risk"),
-        ("code", "df = clean.load_clean()\n"
-                 "tr = trend.classify(df)\n"
-                 "g = spec_audit.gate_trend_detail(tr['detail'], df)\n"
-                 "k = risk.score(df, g, tr['persistent_bottom'])\n"
-                 "pd.DataFrame([{'program': s['program'], 'state': s['state'],\n"
-                 "  'risk': s['composite_risk_0_100'],\n"
-                 "  **{c: s['components'][c].get('raw') for c in s['components']}}\n"
-                 "  for s in k['scores']]).head(20)"),
-        ("code", "k['beneficiary_magnitude']"),
-    ],
 }
 
 

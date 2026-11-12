@@ -8,7 +8,7 @@ from __future__ import annotations
 import datetime as dt
 import json
 
-from . import clean, config, regional, risk, spec_audit, trend, viewb
+from . import clean, config, spec_audit, trend, viewb
 
 
 def _write(name: str, payload) -> None:
@@ -26,15 +26,13 @@ def main() -> None:
     # ---- Section 1 -------------------------------------------------------------
     view_b = viewb.build_view_b(df)
 
-    # ---- Section 2.2 / 2.3 / 2.4 --------------------------------------------
+    # ---- Section 2.2 / 2.3 ---------------------------------------------------
+    # (2.4 regional and 3.2 risk were removed in this version; they live on the
+    #  2026_Version_V1_Expanded_Scope branch.)
     trend_raw = trend.classify(df)
     audit = spec_audit.audit_summary(df)
     gated_detail = spec_audit.gate_trend_detail(trend_raw["detail"], df)
     trend_raw["detail_gated"] = gated_detail
-    reg = regional.regional_trends(gated_detail)
-
-    # ---- Section 3.2 -------------------------------------------------------
-    risk_out = risk.score(df, gated_detail, trend_raw["persistent_bottom"])
 
     meta = {
         "generated_utc": generated,
@@ -57,8 +55,6 @@ def main() -> None:
         "persistent_bottom": trend_raw["persistent_bottom"],
         "audit": audit,
     })
-    _write("regional.json", reg)
-    _write("risk.json", risk_out)
     print("[build] done")
 
 

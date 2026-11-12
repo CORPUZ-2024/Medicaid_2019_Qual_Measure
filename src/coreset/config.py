@@ -109,14 +109,6 @@ DOMAIN_COLOR_DEFAULT = "Viridis"
 def color_scale_for(domain: str) -> str:
     return DOMAIN_COLOR_SCALE.get(domain, DOMAIN_COLOR_DEFAULT)
 
-# Domains weighted higher in the risk score (spec 3.2.1): most exposed to
-# administrative-capacity strain from new eligibility / work-requirement systems.
-RISK_DOMAIN_WEIGHTS = {
-    "Behavioral Health Care": 1.5,
-    "Long-Term Services and Supports": 1.5,
-}
-RISK_DOMAIN_WEIGHT_DEFAULT = 1.0
-
 # CAHPS-survey domains most often excluded from CMS trend analysis (spec section 0).
 SURVEY_DOMAINS = {"Experience of Care", "Long-Term Services and Supports"}
 

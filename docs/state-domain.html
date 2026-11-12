@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>(A) 2024 Measures by State and Domain — Child and Adult Health Care Quality Measures</title>
+<link rel="stylesheet" href="assets/style.css">
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+</head>
+<body>
+<header class="site"></header>
+<main>
+  <h2>(A) 2024 Measures by State and Domain</h2>
+  <p class="lede">How each state performs within each Core Set domain in 2024. A state result is
+  <b>above the median</b> when its rate is at least as good as the CMS median for that measure
+  (CMS's “On Track” flag; direction-aware, so for lower-is-better measures a lower rate counts
+  as above the median). Data: data.medicaid.gov, Quality theme.</p>
+
+  <!-- A.1 ranked overview -->
+  <h2>Overview — top 10 and bottom 10 states</h2>
+  <div class="card">
+    <div class="controls">
+      <label class="ctl">Program
+        <select id="r-program"></select></label>
+      <label class="ctl">Domain
+        <select id="r-domain"></select></label>
+    </div>
+    <div class="note">Score = measures the state reported <b>and</b> scored above the median ÷
+      all measures the state reported in the selected domain. To keep a state that reported one
+      or two measures from topping the list on a small denominator, a state must report at least
+      half of the selection's measure series to be ranked (<span id="r-cutoff"></span>).
+      Ties are broken by number of measures reported.</div>
+    <div class="grid c2">
+      <div><h3>Top 10 — highest performing</h3><ol class="rank" id="r-top"></ol></div>
+      <div><h3>Bottom 10 — lowest performing</h3><ol class="rank" id="r-bot"></ol></div>
+    </div>
+    <div class="measure-meta" id="r-excluded"></div>
+  </div>
+
+  <!-- A.2 state rates table -->
+  <h2>State rates by domain</h2>
+  <p class="lede">Pick a state and a domain to see that state's 2024 rate on every measure next
+  to the CMS median, in the spirit of the original View A. Click a header to sort.</p>
+  <div class="card">
+    <div class="controls">
+      <label class="ctl">State
+        <select id="t-state"></select></label>
+      <label class="ctl">Program
+        <select id="t-program"></select></label>
+      <label class="ctl">Domain
+        <select id="t-domain"></select></label>
+    </div>
+    <div id="t-summary" class="measure-meta"></div>
+    <div class="scroll"><table id="t-table"></table></div>
+  </div>
+
+  <!-- A.3 domain composite -->
+  <h2>Domain composite — how the nation is doing by domain</h2>
+  <p class="lede">For each program × domain: how many states reported, how many distinct
+  measures the domain holds, and the <b>% of reporting states performing above the median</b> —
+  states where more than half of their reported measures in that domain are above the CMS
+  median.</p>
+  <div class="callout">How to read the %: the CMS median splits reporting states roughly in half
+  on every single measure, so this composite cannot show absolute national improvement. What it
+  shows is <i>breadth</i>. Above 50% means above-median results are spread across many states
+  (most states are consistently above the median on the domain). Below 50% means they are
+  concentrated in a smaller group of states while most states fall below on most measures. For
+  change over time, see <a href="trends.html">Trends 2022–24</a>.</div>
+  <div class="card"><div id="d-chart" class="chart"></div></div>
+  <div class="card scroll"><table id="d-table"></table></div>
+  <h3>Reporting variation between states, by domain</h3>
+  <div class="card" id="d-notes"></div>
+</main>
+<footer class="site" id="foot"></footer>
+
+<script src="assets/common.js"></script>
+<script>
+let VB, OBS;
+const el = id => document.getElementById(id);
+const PROGS = [['','All programs'],['Child Core Set','Child Core Set'],['Adult Core Set','Adult Core Set']];
+const short = p => p.replace(' Core Set','');
+
+(async function(){
+  VB = await CS.json('view_b.json');
+  const meta = await CS.json('meta.json');
+  CS.displayNames(VB.measures);
+  el('foot').innerHTML =
+    `Generated ${meta.generated_utc} · ${CS.fmt(meta.canonical_rows,0)} canonical rows · `+
+    `${meta.n_states} reporting states · source: data.medicaid.gov Quality theme (2024 Core Set)`;
+
+  // one observation per state x measure series
+  OBS = VB.measures.flatMap(m => m.bars.filter(b=>b.eval).map(b => ({
+    state:b.state, abbr:b.abbr, rate:b.rate, above:CS.above(b),
+    program:m.program, domain:m.domain, measure:m.display_name, abbr_m:m.measure_abbr,
+    rate_definition:m.rate_definition, median:m.cms_median, direction:m.direction, key:m.measure_key
+  })));
+
+  for (const id of ['r-program','t-program']) PROGS.forEach(([v,t])=>el(id).add(new Option(t,v)));
+  const fillDom = (progSel, domSel) => {
+    const cur = el(domSel).value;
+    const doms = [...new Set(VB.measures.filter(m=>!el(progSel).value||m.program===el(progSel).value).map(m=>m.domain))].sort();
+    el(domSel).innerHTML=''; el(domSel).add(new Option('All domains',''));
+    doms.forEach(d=>el(domSel).add(new Option(d,d)));
+    if (doms.includes(cur)) el(domSel).value = cur;
+  };
+  fillDom('r-program','r-domain'); fillDom('t-program','t-domain');
+  el('r-program').addEventListener('change',()=>{fillDom('r-program','r-domain');renderRank();});
+  el('r-domain').addEventListener('change',renderRank);
+  el('t-program').addEventListener('change',()=>{fillDom('t-program','t-domain');renderTable();});
+  ['t-state','t-domain'].forEach(id=>el(id).addEventListener('change',renderTable));
+
+  const states=[...new Set(OBS.map(o=>o.state))].sort();
+  el('t-state').add(new Option('All states',''));
+  states.forEach(s=>el('t-state').add(new Option(s,s)));
+  el('t-state').value = states[0];
+
+  renderRank(); renderTable(); renderDomains();
+})();
+
+const pick = (prog, dom) => OBS.filter(o => (!prog||o.program===prog) && (!dom||o.domain===dom));
+
+function stateScores(obs){
+  const by={};
+  obs.forEach(o=>{ const s=(by[o.state] ||= {state:o.state, abbr:o.abbr, n:0, above:0}); s.n++; s.above+=o.above; });
+  return Object.values(by).map(s=>({...s, share:s.above/s.n}));
+}
+
+/* A.1 */
+function renderRank(){
+  const prog=el('r-program').value, dom=el('r-domain').value;
+  const obs=pick(prog,dom);
+  const nSeries=new Set(obs.map(o=>o.key)).size;
+  const cutoff=Math.ceil(nSeries/2);
+  el('r-cutoff').textContent=`≥ ${cutoff} of ${nSeries} series in this selection`;
+  const all=stateScores(obs);
+  const ranked=all.filter(s=>s.n>=cutoff).sort((a,b)=>b.share-a.share || b.n-a.n || a.state.localeCompare(b.state));
+  const li=s=>`<li>${s.state} <span class="r">${CS.pct(s.share,0)} · ${s.above}/${s.n}</span></li>`;
+  el('r-top').innerHTML=ranked.slice(0,10).map(li).join('');
+  const bot=ranked.slice(-10).reverse();
+  el('r-bot').innerHTML=bot.map(li).join('');
+  el('r-bot').setAttribute('start',1);
+  const ex=all.filter(s=>s.n<cutoff).map(s=>`${s.state} (${s.n})`);
+  el('r-excluded').textContent = `${ranked.length} states ranked. ` +
+    (ex.length ? `Not ranked — reported fewer than ${cutoff} series: ${ex.join(', ')}.` : 'Every reporting state met the cutoff.');
+}
+
+/* A.2 */
+function renderTable(){
+  const st=el('t-state').value, prog=el('t-program').value, dom=el('t-domain').value;
+  const rows=pick(prog,dom).filter(o=>!st||o.state===st)
+    .sort((a,b)=>a.program.localeCompare(b.program)||a.domain.localeCompare(b.domain)||a.measure.localeCompare(b.measure)||a.state.localeCompare(b.state));
+  const nAbove=rows.filter(r=>r.above).length;
+  el('t-summary').innerHTML = rows.length
+    ? `${rows.length} reported rates · ${CS.pill('good',nAbove+' above median')} ${CS.pill('bad',(rows.length-nAbove)+' below')} · ${CS.pct(nAbove/rows.length,0)} above the median`
+    : 'No reported rates for this selection.';
+  const t=el('t-table');
+  t.innerHTML=`<thead><tr>
+    <th data-k>State</th><th data-k>Program</th><th data-k>Domain</th><th data-k>Measure</th>
+    <th data-k class="num">State rate</th><th data-k class="num">CMS median</th>
+    <th data-k class="num">Gap vs median</th><th data-k>Status</th></tr></thead><tbody>${
+    rows.map(r=>{
+      // gap is oriented so positive = better than the median, whatever the direction
+      const gap=r.median==null?null:(r.direction==='lower_better'?r.median-r.rate:r.rate-r.median);
+      return `<tr>
+      <td>${r.state}</td><td>${short(r.program)}</td><td>${r.domain}</td>
+      <td title="${r.rate_definition.replace(/"/g,'&quot;')}">${r.measure} <span class="muted">${r.abbr_m||''}${r.direction==='lower_better'?' · lower is better':''}</span></td>
+      <td class="num" data-v="${r.rate}">${CS.fmt(r.rate)}</td>
+      <td class="num" data-v="${r.median??''}">${CS.fmt(r.median)}</td>
+      <td class="num" data-v="${gap??''}">${gap==null?'–':(gap>0?'+':'')+CS.fmt(gap)}</td>
+      <td>${r.above?CS.pill('good','Above median'):CS.pill('bad','Below median')}</td></tr>`;}).join('')}</tbody>`;
+  CS.sortable(t);
+}
+
+/* A.3 */
+function median(a){ const s=[...a].sort((x,y)=>x-y), n=s.length; return n? (n%2?s[(n-1)/2]:(s[n/2-1]+s[n/2])/2) : null; }
+function domainRows(){
+  const out=[];
+  for (const prog of ['Child Core Set','Adult Core Set']){
+    const doms=[...new Set(VB.measures.filter(m=>m.program===prog).map(m=>m.domain))].sort();
+    for (const dom of doms){
+      // only series with at least one reported, benchmarked state rate
+      const ms=VB.measures.filter(m=>m.program===prog&&m.domain===dom&&m.bars.some(b=>b.eval));
+      const sc=stateScores(pick(prog,dom));
+      const counts=sc.map(s=>s.n);
+      out.push({program:prog, domain:dom,
+        states:sc.length,
+        measures:new Set(ms.map(m=>m.measure_abbr||m.measure_name)).size,
+        series:ms.length,
+        pctStates:sc.filter(s=>s.share>0.5).length/sc.length,
+        pooled:sc.reduce((a,s)=>a+s.above,0)/sc.reduce((a,s)=>a+s.n,0),
+        minN:Math.min(...counts), medN:median(counts), maxN:Math.max(...counts),
+        full:sc.filter(s=>s.n===ms.length).length,
+        perMeasure:ms.map(m=>m.n_states_reported)});
+    }
+  }
+  return out;
+}
+function renderDomains(){
+  const rows=domainRows();
+  const doms=[...new Set(rows.map(r=>r.domain))].sort().reverse();
+  const COL={'Child Core Set':'#2557a7','Adult Core Set':'#d97a1a'};
+  const traces=['Child Core Set','Adult Core Set'].map(p=>{
+    const r=doms.map(d=>rows.find(x=>x.program===p&&x.domain===d));
+    return {type:'bar',orientation:'h',name:short(p),
+      y:doms, x:r.map(x=>x?x.pctStates*100:null),
+      text:r.map(x=>x?CS.pct(x.pctStates,0):''),textposition:'outside',cliponaxis:false,
+      textfont:{size:11,color:'#1c2530'},
+      marker:{color:COL[p],line:{color:'#fff',width:2}},
+      hovertext:r.map(x=>x?`${short(p)} · ${x.domain}<br>${Math.round(x.pctStates*x.states)} of ${x.states} states above median on most measures<br>${x.measures} distinct measures · ${x.series} rate series`:''),
+      hovertemplate:'%{hovertext}<extra></extra>'};
+  });
+  Plotly.newPlot('d-chart',traces,{
+    barmode:'group',bargap:0.28,bargroupgap:0.08,
+    height:430,margin:{l:10,r:40,t:30,b:40},
+    legend:{orientation:'h',y:1.08,x:0},
+    xaxis:{ticksuffix:'%',range:[0,100],gridcolor:'#eef0f2',title:'% of reporting states above the median (majority of domain measures)'},
+    yaxis:{automargin:true,tickfont:{size:12}},
+    shapes:[{type:'line',x0:50,x1:50,yref:'paper',y0:0,y1:1,line:{color:'#6b7480',width:1,dash:'dot'}}]
+  },{displayModeBar:false,responsive:true});
+
+  const t=el('d-table');
+  t.innerHTML=`<thead><tr>
+    <th data-k>Program</th><th data-k>Domain</th><th data-k class="num">States reporting</th>
+    <th data-k class="num">Distinct measures</th><th data-k class="num">Rate series</th>
+    <th data-k class="num">% of states above median</th>
+    <th data-k class="num">Series reported per state (min · median · max)</th>
+    <th data-k class="num">States reporting every series</th></tr></thead><tbody>${
+    rows.map(r=>`<tr><td>${short(r.program)}</td><td>${r.domain}</td>
+      <td class="num" data-v="${r.states}">${r.states}</td>
+      <td class="num" data-v="${r.measures}">${r.measures}</td>
+      <td class="num" data-v="${r.series}">${r.series}</td>
+      <td class="num" data-v="${r.pctStates}">${CS.pct(r.pctStates,0)}</td>
+      <td class="num" data-v="${r.medN}">${r.minN} · ${CS.fmt(r.medN,0)} · ${r.maxN}</td>
+      <td class="num" data-v="${r.full}">${r.full} of ${r.states}</td></tr>`).join('')}</tbody>`;
+  CS.sortable(t);
+
+  // reporting-variation notes, generated from the same numbers
+  const N=new Set(OBS.map(o=>o.state)).size;
+  el('d-notes').innerHTML='<ul>'+rows.map(r=>{
+    const gaps=[];
+    if(r.states<N) gaps.push(`${N-r.states} of ${N} jurisdictions reported nothing in this domain`);
+    if(r.minN<r.series) gaps.push(`depth varies from ${r.minN} to ${r.maxN} of ${r.series} series per state; ${r.full} states reported all of them`);
+    const lo=Math.min(...r.perMeasure), hi=Math.max(...r.perMeasure);
+    if(hi-lo>=10) gaps.push(`per-measure participation ranges from ${lo} to ${hi} states, so the composite leans on the widely reported measures`);
+    return `<li><b>${short(r.program)} · ${r.domain}:</b> ${gaps.length?gaps.join('; ')+'.':'every reporting state reported every series — fully comparable.'}</li>`;
+  }).join('')+'</ul>'+
+  `<p class="note">Kinds of reporting variation behind these numbers: (1) <b>non-reporting</b> — a state reports
+  no measure in a domain (common for voluntary Adult domains such as Long-Term Services and Supports and Experience of Care);
+  (2) <b>partial reporting</b> — a state reports some but not all sub-rates (age bands, follow-up windows);
+  (3) <b>population differences</b> — states may report Medicaid-only, CHIP-only or combined populations, and
+  managed-care vs fee-for-service coverage differs; (4) <b>specification deviations</b> — rates flagged as using
+  other specifications are excluded from the CMS median. See <a href="limitations.html">Limitations</a>.</p>`;
+}
+</script>
+</body>
+</html>

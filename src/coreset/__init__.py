@@ -1,7 +1,8 @@
-"""Medicaid Child & Adult Core Set - View B Extension pipeline.
+"""Child and Adult Health Care Quality Measures - Core Set pipeline.
 
 Implements ``project_plan/Medicaid_ViewB_GitHub_Pages_Implementation_Spec_v2.txt``
-(Sections 1-4). Item 5 (README rewrite) is intentionally out of scope.
+(Sections 1, 2.2-2.3, 3.1, 4). Regional (2.4) and risk (3.2) analyses were
+removed in this version; see the 2026_Version_V1_Expanded_Scope branch.
 """
 
 __all__ = [
@@ -12,7 +13,5 @@ __all__ = [
     "viewb",
     "trend",
     "spec_audit",
-    "regional",
-    "risk",
     "build",
 ]

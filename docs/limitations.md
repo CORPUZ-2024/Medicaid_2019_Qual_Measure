@@ -42,29 +42,30 @@ Measures are publicly released only when ≥ 25 states report. "Bottom quartile"
 and "not reported" are different things; nulls are handled explicitly and never
 counted as a low score.
 
-## 6. The beneficiary-magnitude estimate is a magnitude only
+## 6. Removed analyses
 
-It reuses the same trend classification as Section 2 and inherits every
-limitation above. It is **not computed at all** unless
-`data/reference/state_enrollment.csv` and
-`measure_eligible_population_share.csv` are supplied — no beneficiary counts are
-fabricated. **Dollar / increased-utilization-cost impact is out of scope** in v2:
-a per-measure review of the cost literature found the rate-to-cost relationship
-too inconsistent across domains to document as one reproducible formula.
+The beneficiary-magnitude estimate, the at-risk score and the HHS-region view
+were removed from this version. Their limitations are documented on the
+[2026 Version V1 (Expanded Scope) branch](https://github.com/CORPUZ-2024/Medicaid_2019_Qual_Measure/tree/2026_Version_V1_Expanded_Scope) and in the
+[V1 archive](v1/limitations.html).
 
 ## 7. The policy analysis is forward-looking and time-sensitive
 
 The 2025 reconciliation law's major provisions take effect in 2027 and postdate
 every year of data here. Treating them as an explanation for 2022–2024 movements
 would be a causal claim the data cannot support; their role is contextualising
-risk for future cycles. See the dated panel on the [Policy Context](policy.html)
+risk for future cycles. See the dated panel on the [Policy Context](index.html)
 page.
 
-## 8. Regional aggregation can mask within-region heterogeneity
+## 8. "Above the median" composites are relative by construction
 
-A region can post a flat average while containing one sharply improving and one
-sharply declining state. The [Regional](regional.html) view always carries the
-state counts and should be read alongside the state-level tables, never alone.
+The CMS median splits the reporting states roughly in half on every measure. So
+the domain composite on [(A)](state-domain.html) ("% of states above the median")
+measures how *broadly* above-median performance is spread across states, not
+whether the nation got better in absolute terms. A state's rank on (A) is also
+limited to the measures it chose to report. The ranking cutoff (at least half of
+the selection's series) reduces, but does not remove, the effect of reporting
+depth.
 
 ## 9. Scope boundary
 

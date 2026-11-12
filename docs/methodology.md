@@ -42,7 +42,7 @@ only two values — *"Higher rates are better for this measure"* and *"Lower rat
 are better for this measure"*. It is **directionality**, not a taxonomy. So:
 
 - The V0 ask to *"provide visuals … by measure type"* is served by the
-  **direction filter** on the View B page plus the **domain accordion**.
+  **direction filter** on page (B) plus the **domain toolbar**.
 - Everywhere a rate is compared to a benchmark, the comparison is
   **direction-aware**:
   - `Eval` (On Track): higher-better → `rate ≥ median`; lower-better → `rate ≤ median`.
@@ -51,18 +51,49 @@ are better for this measure"*. It is **directionality**, not a taxonomy. So:
   - Trend baseline is computed **per direction group**, so improving and
     declining measures never share a baseline.
 
-## Section 1 — View B extension (`viewb.py`)
+## Page (A) — 2024 Measures by State and Domain (`state-domain.html`)
+
+Computed in the browser from `docs/data/view_b.json`; no extra build step.
+
+- **Observation** = one state × one 2024 measure series (`MeasureKey`) with a
+  CMS `Eval`. **Above the median** = `Eval == "On Track"`, which is direction-aware
+  (higher-better: `rate ≥ median`; lower-better: `rate ≤ median`).
+- **Ranked overview:** `score(state) = above-median series / reported series`
+  within the selected program × domain (either can be *All*). A state is ranked
+  only if it reported at least `ceil(series in selection / 2)` series. Ties are
+  broken by number reported. Top 10 and bottom 10 are listed, with excluded states
+  named.
+- **State rates table:** one row per state × series, with the CMS median and a gap
+  oriented so that positive = better than the median.
+- **Domain composite:** per program × domain — states reporting ≥ 1 series;
+  distinct measures (by CMS abbreviation); rate series; **% of states above the
+  median** = share of reporting states whose own above-median share in that
+  domain is > 50%; series reported per state (min · median · max); and states
+  reporting every series. The reporting-variation notes are generated from the
+  same numbers.
+
+## Page (B) — 2024 Across all States by Measure Type and Domain (`viewb.py`, `measures.html`)
 
 - **Per-measure bars:** every reporting state's 2024 canonical rate, sorted
-  ascending, colour = rate on a domain scale, marker outline = `Eval`, dotted
-  line = CMS median.
+  ascending, colour = rate on a domain scale. One **red dashed line** at the CMS
+  median marks the boundary: states on the arrow side are underperforming
+  (`Eval = Not on Track`), direction-aware.
+- **Titles:** where several series share one CMS measure name within a program,
+  the follow-up period or sub-rate from the rate definition is appended in
+  parentheses (e.g. *Follow-Up After Emergency Department Visit for Mental
+  Illness: Ages 6 to 17 (Within 30 Days of the ED Visit)*). If the extra text
+  would still not make the title unique, the plain name is kept and the rate
+  definition line underneath tells the series apart.
+- **Domain toolbar:** only domains that contain measures for the selected program.
 - **3-up summary card:** top / median-closest / bottom **state** for the measure.
   The top state is the best *reported rate*, which is **not** the same as CMS's
   Top-quartile threshold value — the card says so.
-- **Composite state summary (1.2.B):**
-  `OnTrackShare(state, program) = on-track measures / reported measures`, 2024,
-  split Child/Adult. States with < 10 reported measures are shown but flagged and
-  excluded from ranking.
+- **Composite state summary:**
+  `OnTrackShare(state, program) = on-track series / reported series`, 2024,
+  pooled across **all measures in all domains**. The charts exclude states with
+  < 10 reported series. The table has one row per state with the Child and Adult
+  shares, sorted by `Child − Adult` descending; the gap is used only for ordering
+  and is not displayed.
 
 ## Section 2.2 — baseline & classification (`trend.py`)
 
@@ -105,40 +136,18 @@ Before a DeltaRate is shown as a trend line it must pass all of:
 **2.3a** (Child + Adult-behavioral-health reporting became mandatory with the
 2024 Core Set) is carried as a window-level warning on the Trends page.
 
-## Section 2.4 — HHS regions (`regional.py`)
-
-`data/region_lookup.csv` is the authoritative State → HHS-region table. The
-Section 2.2 calculation is re-run with `HHSRegion` added to the grouping, over
-**only the gated-comparable pairs**, and `region_vs_national` = region mean
-`improve_delta` − national mean for the same program / domain / transition. The
-2019 notebook's ad hoc four-region grouping is retired.
-
 ## Section 3.1 — policy context
 
-A hand-maintained dated Markdown panel (`docs/policy-context.md`), deliberately
-outside the data-refresh cycle. Forward-looking; not causally attributed to
+A hand-maintained dated Markdown page (`docs/policy-context.md`), deliberately
+outside the data-refresh cycle, shown as the site's first page. Forward-looking; not causally attributed to
 2022–2024 movements.
 
-## Section 3.2 — risk score (`risk.py`)
+## Removed in this version
 
-```
-composite_risk(0–100) = 100 × ( 0.5·trend_exposure_n
-                              + 0.3·fiscal_exposure
-                              + 0.2·reporting_capacity_exposure_n )
-```
-
-- **trend_exposure** = weighted count of gated-Declining measures
-  (Behavioral Health Care & LTSS ×1.5) + 0.5 × persistent-bottom count;
-  min–max normalised within program.
-- **fiscal_exposure** = ordinal Low/Med/High from
-  `data/reference/state_fiscal_exposure.csv`; a neutral 0.5 is used for every
-  state until that file is populated (the page says so).
-- **reporting_capacity_exposure** = share of a state's 2024 measures it did not
-  report in 2023 (proxy for 2.3a exposure); min–max normalised within program.
-- **beneficiary magnitude** =
-  `enrollment × eligible_population_share × (baseline − projected rate)`;
-  emitted only when both reference tables are supplied, otherwise `null` with
-  `needs_analyst_input`. **No dollar figure is produced** (out of scope, v2).
+The HHS-region stratification (Section 2.4) and the at-risk score (Section 3.2)
+are preserved, with their code and pages, on the
+[2026 Version V1 (Expanded Scope) branch](https://github.com/CORPUZ-2024/Medicaid_2019_Qual_Measure/tree/2026_Version_V1_Expanded_Scope)
+and in the [V1 archive](v1/methodology.html).
 
 ## Reproduce
 
