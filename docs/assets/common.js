@@ -22,40 +22,75 @@ const CS = {
   above(b){ return b.eval==='On Track'; },
   // Measure titles: several rate series share one CMS measure name (e.g. FUM-CH has a
   // 7-day and a 30-day rate). When a name is not unique within its program, append the
-  // follow-up period (or the distinguishing age band) from the rate definition.
-  qualifier(rd, name){
-    let m;
-    if((m = rd.match(/(Alcohol Use Disorder|Opioid Use Disorder|Other SUD|Total SUD) with (Initiation|Engagement) of SUD Treatment within (\d+) Days/i)))
-      return `${m[1]}: ${m[2]} Within ${m[3]} Days`;
-    if(/Postpartum Care Visit on or Between 7 and 84 Days/i.test(rd)) return 'Postpartum Visit Within 7 to 84 Days after Delivery';
-    if(/Prenatal Care Visit in the First Trimester/i.test(rd)) return 'Prenatal Visit in First Trimester or Within 42 Days of Enrollment';
-    if(/for 12 Weeks/i.test(rd)) return 'Acute Phase, 12 Weeks';
-    if(/Continuation Phase \(6 Months\)/i.test(rd)) return 'Continuation Phase, 6 Months';
-    if((m = rd.match(/in (Poor )?Control \(([<>][\d.]+%)\)/i))) return `${m[1]?'Poor Control ':'Control '}${m[2]}`;
-    m = rd.match(/within \d+ days[^:]*/i) ||
-        rd.match(/\d+-Day Initiation Phase|9-Month Continuation and Maintenance Phase/i);
-    if(m){
-      let q = m[0].replace(/^within/i,'Within').trim();
-      if(/Long-Acting Reversible/i.test(rd)) q = 'LARC, ' + q;
-      else if(/Most Effective or Moderately/i.test(rd)) q = 'Most/Moderately Effective, ' + q;
-      return q;
-    }
-    const age = rd.match(/Ages? \d+(?: to \d+| and Older)?\s*$/i);
-    if(age && !name.includes(age[0].trim())) return age[0].trim();
-    return '';
+  // follow-up period, or the sub-rate that tells the series apart, from the rate definition.
+  SUBRATES: [
+    // follow-up / time windows
+    [/(Alcohol Use Disorder|Opioid Use Disorder|Other SUD|Total SUD) with (Initiation|Engagement) of SUD Treatment within (\d+) Days/i,
+      m=>`${m[1]}: ${m[2]} Within ${m[3]} Days`],
+    [/Postpartum Care Visit on or Between 7 and 84 Days/i, ()=>'Postpartum Visit Within 7 to 84 Days after Delivery'],
+    [/Prenatal Care Visit in the First Trimester/i, ()=>'Prenatal Visit in First Trimester or Within 42 Days of Enrollment'],
+    [/for 12 Weeks/i, ()=>'Acute Phase, 12 Weeks'],
+    [/Continuation Phase \(6 Months\)/i, ()=>'Continuation Phase, 6 Months'],
+    [/(\d+) or More Well-Child Visits .*during the (First 15 Months|15th to 30th Months) of Life/i,
+      m=>`${m[1]}+ Visits ${m[2]==='First 15 Months'?'in the First 15 Months':'from 15 to 30 Months'}`],
+    [/(Long-Acting Reversible|Most Effective or Moderately Effective) Method of Contraception(?: (Within \d+ Days of Delivery))?/i,
+      m=>(/Long/i.test(m[1])?'LARC':'Most/Moderately Effective')+(m[2]?', '+m[2]:'')],
+    [/within \d+ days[^:]*/i, m=>m[0].replace(/^within/i,'Within').trim()],
+    [/\d+-Day Initiation Phase|9-Month Continuation and Maintenance Phase/i, m=>m[0]],
+    // other sub-rates
+    [/in (Poor )?Control \(([<>][\d.]+%)\)/i, m=>`${m[1]?'Poor Control ':'Control '}${m[2]}`],
+    [/Advised to Quit/i, ()=>'Advised to Quit'],
+    [/Recommended Cessation Medications/i, ()=>'Cessation Medications'],
+    [/Other Cessation Methods/i, ()=>'Other Cessation Strategies'],
+    [/Life Decisions/i, ()=>'Makes Life Decisions'],
+    [/Way to Get Places/i, ()=>'Has Transportation'],
+    [/Daily Schedule/i, ()=>'Decides Daily Schedule and Spending'],
+    [/Dispensed (?:an )?FDA-Approved Medication.*Total Rate/i, ()=>'Any Medication, Total Rate'],
+    [/Dispensed (Buprenorphine|Long-acting Injectable Naltrexone|Methadone|Oral Naltrexone)/i, m=>m[1]],
+    [/\(Combination (\d+)\)/i, m=>`Combination ${m[1]}`],
+    [/Measles, Mumps, and Rubella/i, ()=>'MMR'],
+    [/Two Flu Vaccinations/i, ()=>'2+ Flu Vaccinations'],
+    [/Human Papillomavirus/i, ()=>'HPV Series'],
+    [/Sealants on All Four/i, ()=>'All Four Molars'],
+    [/Sealant on at Least One/i, ()=>'At Least One Molar'],
+    [/Body Mass Index Percentile/i, ()=>'BMI Percentile'],
+    [/Counseling for Nutrition/i, ()=>'Nutrition Counseling'],
+    [/Counseling for Physical Activity/i, ()=>'Physical Activity Counseling'],
+    [/Metabolic Testing for (Blood Glucose and Cholesterol|Blood Glucose|Cholesterol)/i, m=>m[1].replace('Blood ','')],
+    // CAHPS survey items (+ child population)
+    [/Rated (Their|the) (Health Care|Health Plan|Personal Doctor|Specialist)/i, m=>`Rated ${m[2]} 9–10`],
+    [/Informed and Up-to-Date/i, ()=>'Doctor Informed about Other Care'],
+    [/Got Care Quickly/i, ()=>'Always Got Care Quickly'],
+    [/Got Needed Care/i, ()=>'Always Got Needed Care'],
+    [/Communicates Well/i, ()=>'Doctor Always Communicates Well'],
+    [/Customer Service/i, ()=>'Customer Service'],
+  ],
+  qualifier(rd, name, withAge){
+    const parts=[];
+    for(const [re,f] of CS.SUBRATES){ const m=rd.match(re); if(m){ parts.push(f(m)); break; } }
+    if(/Children with Chronic Conditions \(CCC\)/i.test(rd)) parts.push('Chronic Conditions');
+    else if(/General Child \(GC\)/i.test(rd)) parts.push('General Child');
+    // age band, when it differs from the band already in the measure name
+    const age = rd.match(/(?:Ages? \d+(?: to \d+| and Older)?|Under Age \d+)\s*$/i);
+    if(withAge && age) parts.push(age[0].trim() + (name.includes(age[0].trim()) ? ', Total' : ''));
+    return parts.join(', ');
   },
   displayNames(measures){
     const n = {}, k = m => m.program+'|'+m.measure_name;
     measures.forEach(m=>{ n[k(m)]=(n[k(m)]||0)+1; });
-    measures.forEach(m=>{
-      const q = n[k(m)]>1 ? CS.qualifier(m.rate_definition, m.measure_name) : '';
+    const label = withAge => measures.forEach(m=>{
+      if(n[k(m)]<2 || (withAge && !m._clash)) return;
+      const q = CS.qualifier(m.rate_definition, m.measure_name, withAge);
       m.display_name = q ? `${m.measure_name} (${q})` : m.measure_name;
     });
-    // a qualifier that still collides (e.g. only the age band differs across several
-    // sub-rates) does not help; fall back to the plain name + rate-definition line
+    measures.forEach(m=>{ m.display_name=m.measure_name; });
+    label(false);
+    // second pass: add the age band only where titles still collide (e.g. AMR 5–11 vs 12–18)
     const d = {};
     measures.forEach(m=>{ const key=m.program+'|'+m.display_name; d[key]=(d[key]||0)+1; });
-    measures.forEach(m=>{ if(d[m.program+'|'+m.display_name]>1) m.display_name=m.measure_name; });
+    measures.forEach(m=>{ m._clash = d[m.program+'|'+m.display_name]>1; });
+    label(true);
+    measures.forEach(m=>{ delete m._clash; });
   },
   sortable(table){
     table.querySelectorAll('th[data-k]').forEach((th,ci)=>{

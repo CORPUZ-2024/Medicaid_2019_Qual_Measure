@@ -55,21 +55,21 @@ are better for this measure"*. It is **directionality**, not a taxonomy. So:
 
 Computed in the browser from `docs/data/view_b.json`; no extra build step.
 
-- **Observation** = one state × one 2024 measure series (`MeasureKey`) with a
+- **Observation** = one state × one 2024 measure rate (`MeasureKey` = program × measure × rate definition) with a
   CMS `Eval`. **Above the median** = `Eval == "On Track"`, which is direction-aware
   (higher-better: `rate ≥ median`; lower-better: `rate ≤ median`).
-- **Ranked overview:** `score(state) = above-median series / reported series`
+- **Ranked overview:** `score(state) = above-median rates / reported rates`
   within the selected program × domain (either can be *All*). A state is ranked
-  only if it reported at least `ceil(series in selection / 2)` series. Ties are
+  only if it reported at least `ceil(rates in selection / 2)` rates. Ties are
   broken by number reported. Top 10 and bottom 10 are listed, with excluded states
   named.
-- **State rates table:** one row per state × series, with the CMS median and a gap
+- **State rates table:** one row per state × rate, with the CMS median and a gap
   oriented so that positive = better than the median.
-- **Domain composite:** per program × domain — states reporting ≥ 1 series;
-  distinct measures (by CMS abbreviation); rate series; **% of states above the
+- **Domain composite:** per program × domain — states reporting ≥ 1 rate;
+  distinct measures (by CMS abbreviation); measure rates; **% of states above the
   median** = share of reporting states whose own above-median share in that
-  domain is > 50%; series reported per state (min · median · max); and states
-  reporting every series. The reporting-variation notes are generated from the
+  domain is > 50%; rates reported per state (min · median · max); and states
+  reporting every rate. The NPR depression-screening rates are excluded. The reporting-variation notes are generated from the
   same numbers.
 
 ## Page (B) — 2024 Across all States by Measure Type and Domain (`viewb.py`, `measures.html`)
@@ -78,20 +78,26 @@ Computed in the browser from `docs/data/view_b.json`; no extra build step.
   ascending, colour = rate on a domain scale. One **red dashed line** at the CMS
   median marks the boundary: states on the arrow side are underperforming
   (`Eval = Not on Track`), direction-aware.
-- **Titles:** where several series share one CMS measure name within a program,
+- **Titles:** where several rates share one CMS measure name within a program,
   the follow-up period or sub-rate from the rate definition is appended in
   parentheses (e.g. *Follow-Up After Emergency Department Visit for Mental
-  Illness: Ages 6 to 17 (Within 30 Days of the ED Visit)*). If the extra text
-  would still not make the title unique, the plain name is kept and the rate
-  definition line underneath tells the series apart.
+  Illness: Ages 6 to 17 (Within 30 Days of the ED Visit)*; *Childhood
+  Immunization Status: Age 2 (Combination 10)*; CAHPS items also name the child
+  population). An age band is added only where titles would otherwise still
+  collide, and the all-ages rate is marked *Total*. Every 2024 title is unique.
+- **Not publicly reported (NPR):** the two depression-screening rates (CDF-AD,
+  CDF-CH) have no published 2024 state rates. They are listed with a note,
+  without a chart or median, and are excluded from every composite.
+- **Ties:** a rate exactly equal to the CMS median counts as on track / above
+  the median (135 of 6,331 state rates in 2024).
 - **Domain toolbar:** only domains that contain measures for the selected program.
 - **3-up summary card:** top / median-closest / bottom **state** for the measure.
   The top state is the best *reported rate*, which is **not** the same as CMS's
   Top-quartile threshold value — the card says so.
 - **Composite state summary:**
-  `OnTrackShare(state, program) = on-track series / reported series`, 2024,
+  `OnTrackShare(state, program) = on-track rates / reported rates`, 2024,
   pooled across **all measures in all domains**. The charts exclude states with
-  < 10 reported series. The table has one row per state with the Child and Adult
+  < 10 reported rates (none in 2024). The table has one row per state with the Child and Adult
   shares, sorted by `Child − Adult` descending; the gap is used only for ordering
   and is not displayed.
 
