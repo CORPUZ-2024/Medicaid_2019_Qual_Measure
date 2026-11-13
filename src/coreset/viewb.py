@@ -35,14 +35,14 @@ def _best_worst(sub: pd.DataFrame) -> tuple[dict, dict, dict]:
     mid = s.iloc[(s["StateRate"] - med).abs().argsort().iloc[0]]
 
     def pack(row, extra=None):
-        d = {"state": row["State"], "abbr": row["StateAbbr"], "rate": round(float(row["StateRate"]), 1)}
+        d = {"state": row["State"], "abbr": row["StateAbbr"], "rate": round(float(row["StateRate"]), 2)}
         if extra:
             d.update(extra)
         return d
 
     return (
         pack(best),
-        pack(mid, {"cohort_median": round(float(med), 1)}),
+        pack(mid, {"cohort_median": round(float(med), 2)}),
         pack(worst),
     )
 
@@ -79,9 +79,8 @@ def build_view_b(clean: pd.DataFrame) -> dict:
             "n_not_on_track": int(off),
             "bars": [
                 {"state": r["State"], "abbr": r["StateAbbr"],
-                 "rate": round(float(r["StateRate"]), 1),
-                 "eval": r["Eval"] if pd.notna(r["Eval"]) else None,
-                 "region": _int_or_none(r["HHSRegion"])}
+                 "rate": round(float(r["StateRate"]), 2),
+                 "eval": r["Eval"] if pd.notna(r["Eval"]) else None}
                 for _, r in rated.iterrows()
             ],
             "summary_card": {
@@ -118,7 +117,6 @@ def build_composite(clean: pd.DataFrame) -> list[dict]:
         rows.append({
             "state": state,
             "abbr": g["StateAbbr"].iloc[0],
-            "region": _int_or_none(g["HHSRegion"].iloc[0]),
             "program": prog,
             "measures_reported": int(reported),
             "measures_on_track": int(on_track),

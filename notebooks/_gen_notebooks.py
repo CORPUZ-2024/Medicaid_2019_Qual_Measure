@@ -1,4 +1,4 @@
-"""Regenerate the six Appendix-A notebooks as thin, documented wrappers around
+"""Regenerate the Appendix-A notebooks as thin, documented wrappers around
 src/coreset/. Run:  python notebooks/_gen_notebooks.py
 """
 from __future__ import annotations
@@ -19,7 +19,7 @@ NOTEBOOKS = {
                "Generalises `2019Medicaid.ipynb`'s cleaning: load the three Core Set vintages, "
                "normalise schema drift, tag `CoreSetYear`, select the canonical (CMS "
                "mean/median) rate, log DQ exceptions, derive `Direction` / `Eval` / "
-               "`InBottomQuartile` / `MeasureKey`, attach HHS regions."),
+               "`InBottomQuartile` / `MeasureKey`, attach state abbreviations."),
         ("code", BOOT + "from coreset import ingest, clean"),
         ("code", "raw = ingest.load_all()\nraw.groupby('CoreSetYear').size()"),
         ("code", "df = clean.build_clean(write=True)\ndf.shape"),
@@ -41,24 +41,25 @@ NOTEBOOKS = {
     ],
     "03_trend_baseline.ipynb": [
         ("md", "# 03 · Three-year baseline & classification (spec 2.2)\n\n"
-               "Direction-aware baseline = mean YoY ΔStateRate per (program, direction) group; "
+               "Direction-adjusted YoY change per state × rate; baseline = mean change per "
+               "program × domain × transition over CMS-trendable, comparable changes; "
                "Improving / Stable / Declining at ±0.5 SD; Persistent Bottom Quartile ≥ 2 of 3 years."),
-        ("code", BOOT + "from coreset import clean, trend"),
-        ("code", "df = clean.load_clean()\nbase, deltas = trend.baseline_table(df)\nbase"),
-        ("code", "out = trend.classify(df)\npd.DataFrame(out['state_rollup']).head(15)"),
+        ("code", BOOT + "from coreset import clean, trend, spec_audit"),
+        ("code", "df = clean.load_clean()\nchanges = trend.deltas(df)\ngated = spec_audit.gate(changes, df)\n"
+                 "out = trend.classify(gated, df)\npd.DataFrame(out['baseline'])"),
+        ("code", "pd.DataFrame(out['state_rollup']).head(15)"),
         ("code", "pd.DataFrame(out['measure_rollup']).head(15)"),
     ],
     "04_specification_change_audit.ipynb": [
-        ("md", "# 04 · Comparability gate (spec 2.3)\n\n"
-               "2.3b trendable filter (computed approximation of CMS's 3-part criterion), "
-               "2.3c specification-change seed, 2.3d state-level 'other specifications' flag. "
-               "A DeltaRate that fails any check renders as *Not comparable*."),
+        ("md", "# 04 · Trendability & comparability gate (spec 2.3)\n\n"
+               "CMS's own rate-level 2022–2024 trending determinations "
+               "(`data/reference/cms_trendable_measures.csv`, from the Sept 2025 CMS methods brief) "
+               "plus this site's state-reported-deviation check. A change that fails either is left out."),
         ("code", BOOT + "from coreset import clean, trend, spec_audit"),
-        ("code", "df = clean.load_clean()\ntm = spec_audit.trendable_measures(df)\n"
-                 "tm.groupby('program')[['present_all_years','meets_state_threshold','trendable_computed']].sum()"),
-        ("code", "spec_audit.other_spec_flags().groupby('CoreSetYear').size()"),
-        ("code", "g = spec_audit.gate_trend_detail(trend.classify(df)['detail'], df)\n"
-                 "pd.Series([d['classification_display'] for d in g]).value_counts()"),
+        ("code", "df = clean.load_clean()\ndet = spec_audit.determinations(df)\n"
+                 "det[det['years'].apply(lambda y: 2024 in y)].groupby(['program','determination']).size()"),
+        ("code", "gated = spec_audit.gate(trend.deltas(df), df)\ngated['comparable'].value_counts()"),
+        ("code", "{k: v for k, v in spec_audit.audit_summary(df, gated).items() if k.startswith('n_')}"),
     ],
 }
 

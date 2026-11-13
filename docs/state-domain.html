@@ -12,9 +12,10 @@
 <main>
   <h2>(A) 2024 Measures by State and Domain</h2>
   <p class="lede">How each state performs within each Core Set domain in 2024. A state result is
-  <b>above the median</b> when its rate is at least as good as the CMS median for that measure
-  (CMS's “On Track” flag; direction-aware, so for lower-is-better measures a lower rate counts
-  as above the median; a rate exactly equal to the median counts as above). Counts are of
+  <b>on track</b> (scored better than the median) when its rate is at least as good as the CMS
+  median for that rate. This is direction-aware: for lower-is-better rates, such as hospital
+  admissions or low birth weight, a rate <i>below</i> the median number is the better result
+  and counts as on track. A rate exactly equal to the median counts as on track. Counts are of
   <b>measure rates</b>: each rate definition counts separately, e.g. 7-day and 30-day follow-up.
   The two depression-screening rates (CDF) are left out because their 2024 state rates are not
   publicly reported. Data: data.medicaid.gov, Quality theme.</p>
@@ -28,11 +29,11 @@
       <label class="ctl">Domain
         <select id="r-domain"></select></label>
     </div>
-    <div class="note">Score = measure rates the state reported <b>and</b> scored above the median ÷
-      all measure rates the state reported in the selection. To keep a state that reported only
+    <div class="note">Score = measure rates the state reported <b>and</b> was on track on (at or
+      better than the median) ÷ all measure rates the state reported in the selection. To keep a state that reported only
       one or two rates from topping the list on a small denominator, a state must report at least
       half of the selection's rates to be ranked (<span id="r-cutoff"></span>). Ties are broken by
-      number of rates reported. Values shown: score · above-median / reported.</div>
+      number of rates reported. Values shown: score · on-track rates / reported rates.</div>
     <div class="grid c2">
       <div><h3>Top 10 — highest performing</h3><ol class="rank" id="r-top"></ol></div>
       <div><h3>Bottom 10 — lowest performing (1 = lowest)</h3><ol class="rank" id="r-bot"></ol></div>
@@ -63,13 +64,13 @@
   <h2>Domain composite — how the nation is doing by domain</h2>
   <p class="lede">For each program × domain: how many states reported, how many distinct
   measures (CMS abbreviations) and measure rates the domain holds, and the <b>% of reporting
-  states performing above the median</b> — states where more than half of their reported rates
-  in that domain are above the CMS median (exactly half does not count).</p>
+  states mostly on track</b> — states where more than half of their reported rates in that
+  domain are at or better than the CMS median (exactly half does not count).</p>
   <div class="callout">How to read the %: the CMS median splits reporting states roughly in half
   on every single measure, so this composite cannot show absolute national improvement. What it
-  shows is <i>breadth</i>. Above 50% means above-median results are spread across many states
-  (most states are consistently above the median on the domain). Below 50% means they are
-  concentrated in a smaller group of states while most states fall below on most measures. For
+  shows is <i>breadth</i>. Above 50% means on-track results are spread across many states (most
+  states are on track on most of the domain's rates). Below 50% means they are concentrated in a
+  smaller group of states while most states are not on track on most rates. For
   change over time, see <a href="trends.html">Trends 2022–24</a>.</div>
   <div class="card"><div id="d-chart" class="chart"></div></div>
   <div class="card scroll"><table id="d-table"></table></div>
@@ -140,12 +141,14 @@ function renderRank(){
   const all=stateScores(obs);
   const ranked=all.filter(s=>s.n>=cutoff).sort((a,b)=>b.share-a.share || b.n-a.n || a.state.localeCompare(b.state));
   const li=s=>`<li>${s.state} <span class="r">${CS.pct(s.share,0)} · ${s.above}/${s.n}</span></li>`;
-  el('r-top').innerHTML=ranked.slice(0,10).map(li).join('');
+  const none=`<li class="empty">No state reported at least ${cutoff} of the ${nSeries} rates in this selection, so none can be ranked.</li>`;
+  el('r-top').innerHTML=ranked.length?ranked.slice(0,10).map(li).join(''):none;
   const bot=ranked.slice(-10).reverse();
-  el('r-bot').innerHTML=bot.map(li).join('');
+  el('r-bot').innerHTML=ranked.length?bot.map(li).join(''):none;
   el('r-bot').setAttribute('start',1);
   const ex=all.filter(s=>s.n<cutoff).map(s=>`${s.state} (${s.n})`);
-  el('r-excluded').textContent = `${ranked.length} states ranked. ` +
+  el('r-excluded').textContent = `${ranked.length} states ranked` +
+    (ranked.length<20 ? ' (fewer than 20, so the two lists overlap). ' : '. ') +
     (ex.length ? `Not ranked — reported fewer than ${cutoff} rates: ${ex.join(', ')}.` : 'Every reporting state met the cutoff.');
 }
 
@@ -156,23 +159,29 @@ function renderTable(){
     .sort((a,b)=>a.program.localeCompare(b.program)||a.domain.localeCompare(b.domain)||a.measure.localeCompare(b.measure)||a.state.localeCompare(b.state));
   const nAbove=rows.filter(r=>r.above).length;
   el('t-summary').innerHTML = rows.length
-    ? `${rows.length} reported measure rates · ${CS.pill('good',nAbove+' above median')} ${CS.pill('bad',(rows.length-nAbove)+' below')} · ${CS.pct(nAbove/rows.length,0)} above the median`
-    : 'No reported rates for this selection.';
+    ? `${rows.length} reported measure rates · ${CS.pill('good',nAbove+' on track')} ${CS.pill('bad',(rows.length-nAbove)+' not on track')} · ${CS.pct(nAbove/rows.length,0)} on track`
+    : '';
+  const sel=[prog?short(prog):'', dom||''].filter(Boolean).join(' · ')||'any program or domain';
+  const why = !rows.length ? (st
+      ? `${CS.esc(st)} has no published 2024 rate for ${CS.esc(sel)}. It either did not report these measures to CMS, or CMS did not publicly report its rates (for example, rates calculated with other specifications or suppressed for small numbers).`
+      : `No published 2024 rates for ${CS.esc(sel)}.`) : '';
   const t=el('t-table');
-  t.innerHTML=`<thead><tr>
-    <th data-k>State</th><th data-k>Program</th><th data-k>Domain</th><th data-k>Measure</th>
-    <th data-k class="num">State rate</th><th data-k class="num">CMS median</th>
-    <th data-k class="num">Gap vs median</th><th data-k>Status</th></tr></thead><tbody>${
-    rows.map(r=>{
+  t.innerHTML=`<thead><tr>${CS.th('State')}${CS.th('Program')}${CS.th('Domain')}
+    ${CS.th('Measure rate','CMS measure name, with the follow-up period or sub-rate in parentheses where the name alone is not unique. Hover a row for the full rate definition.')}
+    ${CS.th('State rate','The state\'s published 2024 rate (CMS\'s canonical Medicaid/CHIP roll-up), in the measure\'s own units.',true)}
+    ${CS.th('CMS median','Median of all states\' published 2024 rates for this rate, as reported by CMS.',true)}
+    ${CS.th('Gap vs median','State rate − CMS median for higher-is-better rates; CMS median − state rate for lower-is-better rates. Positive always means better than the median.',true)}
+    ${CS.th('Status',`On track = the state's rate is at least as good as the CMS median for that rate (direction-aware: for lower-is-better rates, at or below the median). Ties count as on track.`)}</tr></thead><tbody>${
+    !rows.length ? CS.emptyRow(8, why) : rows.map(r=>{
       // gap is oriented so positive = better than the median, whatever the direction
       const gap=r.median==null?null:(r.direction==='lower_better'?r.median-r.rate:r.rate-r.median);
       return `<tr>
       <td>${r.state}</td><td>${short(r.program)}</td><td>${r.domain}</td>
-      <td title="${r.rate_definition.replace(/"/g,'&quot;')}">${r.measure} <span class="muted">${r.abbr_m||''}${r.direction==='lower_better'?' · lower is better':''}</span></td>
-      <td class="num" data-v="${r.rate}">${CS.fmt(r.rate)}</td>
-      <td class="num" data-v="${r.median??''}">${CS.fmt(r.median)}</td>
-      <td class="num" data-v="${gap??''}">${gap==null?'–':(gap>0?'+':'')+CS.fmt(gap)}</td>
-      <td>${r.above?CS.pill('good','Above median'):CS.pill('bad','Below median')}</td></tr>`;}).join('')}</tbody>`;
+      <td title="${CS.esc(r.rate_definition)}">${r.measure} <span class="muted">${r.abbr_m||''}${r.direction==='lower_better'?' · lower is better':''}</span></td>
+      <td class="num" data-v="${r.rate}">${CS.rate(r.rate,r.median)}</td>
+      <td class="num" data-v="${r.median??''}">${CS.rate(r.median,r.median)}</td>
+      <td class="num" data-v="${gap??''}">${gap==null?'–':(gap>0?'+':'')+CS.rate(gap,r.median)}</td>
+      <td data-v="${r.above?1:0}">${r.above?CS.pill('good','On track'):CS.pill('bad','Not on track')}</td></tr>`;}).join('')}</tbody>`;
   CS.sortable(t);
 }
 
@@ -211,25 +220,26 @@ function renderDomains(){
       text:r.map(x=>x?CS.pct(x.pctStates,0):''),textposition:'outside',cliponaxis:false,
       textfont:{size:11,color:'#1c2530'},
       marker:{color:COL[p],line:{color:'#fff',width:2}},
-      hovertext:r.map(x=>x?`${short(p)} · ${x.domain}<br>${Math.round(x.pctStates*x.states)} of ${x.states} states above median on most measures<br>${x.measures} distinct measures · ${x.series} measure rates`:''),
+      hovertext:r.map(x=>x?`${short(p)} · ${x.domain}<br>${Math.round(x.pctStates*x.states)} of ${x.states} states on track on most of their rates<br>${x.measures} distinct measures · ${x.series} measure rates`:'Not in this program'),
       hovertemplate:'%{hovertext}<extra></extra>'};
   });
   Plotly.newPlot('d-chart',traces,{
     barmode:'group',bargap:0.28,bargroupgap:0.08,
     height:430,margin:{l:10,r:40,t:30,b:40},
     legend:{orientation:'h',y:1.08,x:0},
-    xaxis:{ticksuffix:'%',range:[0,100],gridcolor:'#eef0f2',title:'% of reporting states with most of their domain rates above the median'},
+    xaxis:{ticksuffix:'%',range:[0,100],gridcolor:'#eef0f2',title:'% of reporting states on track on most of their domain rates'},
     yaxis:{automargin:true,tickfont:{size:12}},
     shapes:[{type:'line',x0:50,x1:50,yref:'paper',y0:0,y1:1,line:{color:'#6b7480',width:1,dash:'dot'}}]
   },{displayModeBar:false,responsive:true});
 
   const t=el('d-table');
-  t.innerHTML=`<thead><tr>
-    <th data-k>Program</th><th data-k>Domain</th><th data-k class="num">States reporting</th>
-    <th data-k class="num">Distinct measures</th><th data-k class="num">Measure rates</th>
-    <th data-k class="num">% of states above median</th>
-    <th data-k class="num">Rates reported per state (min · median · max)</th>
-    <th data-k class="num">States reporting every rate</th></tr></thead><tbody>${
+  t.innerHTML=`<thead><tr>${CS.th('Program')}${CS.th('Domain')}
+    ${CS.th('States reporting','States (incl. DC and Puerto Rico) with at least one published 2024 rate in this program × domain.',true)}
+    ${CS.th('Distinct measures','Distinct CMS measures (by abbreviation) with published 2024 rates in the domain.',true)}
+    ${CS.th('Measure rates','Distinct rate definitions with published 2024 rates (one measure can have several, e.g. 7- and 30-day follow-up).',true)}
+    ${CS.th('% of states mostly on track','Share of reporting states for which more than half of their reported rates in the domain are on track (at or better than the CMS median). Exactly half does not count.',true)}
+    ${CS.th('Rates reported per state (min · median · max)','Across reporting states: the fewest, median and most rates a state reported in this domain. Sorts by the median.',true)}
+    ${CS.th('States reporting every rate','Reporting states that published every rate in the domain.',true)}</tr></thead><tbody>${
     rows.map(r=>`<tr><td>${short(r.program)}</td><td>${r.domain}</td>
       <td class="num" data-v="${r.states}">${r.states}</td>
       <td class="num" data-v="${r.measures}">${r.measures}</td>
@@ -253,8 +263,8 @@ function renderDomains(){
   no measure in a domain (common for voluntary Adult domains such as Long-Term Services and Supports and Experience of Care);
   (2) <b>partial reporting</b> — a state reports some but not all sub-rates (age bands, follow-up windows);
   (3) <b>population differences</b> — states may report Medicaid-only, CHIP-only or combined populations, and
-  managed-care vs fee-for-service coverage differs; (4) <b>specification deviations</b> — rates flagged as using
-  other specifications are excluded from the CMS median. See <a href="limitations.html">Limitations</a>.</p>`;
+  managed-care vs fee-for-service coverage differs; (4) <b>specification deviations</b> — rates a state calculated with
+  other specifications are not publicly reported by CMS, so they appear here as not reported. See <a href="limitations.html">Limitations</a>.</p>`;
 }
 </script>
 </body>

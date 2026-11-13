@@ -161,7 +161,6 @@ any change in a rate with enrollment data before reading it as a quality change.
 | Did a measure actually decline, or is it a reporting artefact? | [Trends 2022–24](trends.html), comparability gate |
 | How does each state perform within a domain? | [(A) 2024 Measures by State and Domain](state-domain.html) |
 | How do all states compare on one measure? | [(B) 2024 Across all States by Measure Type and Domain](measures.html) |
-| Which states / regions are most exposed going forward? | Removed from this version. The Regional and At-Risk analyses are preserved on the [2026 Version V1 (Expanded Scope) branch](https://github.com/CORPUZ-2024/Medicaid_2019_Qual_Measure/tree/2026_Version_V1_Expanded_Scope) and in the [V1 archive](v1/risk.html) |
 
 ## Primary sources
 

@@ -1,6 +1,78 @@
-program,measure_name,measure_abbr,trendable_2022_2024,source
-# Populate from CMS "Criteria for Using the 2024 Child and Adult Core Set
-# Measures to Assess Trends in State Performance" (Sept 2025). CMS found 19 of
-# the Child Core Set and 22 of the Adult Core Set measures met all three
-# criteria for the 2022-2024 window. Until this file is populated, spec_audit
-# falls back to a computed approximation and marks the output accordingly.
+# CMS trending determinations for the 2022-2024 Core Sets, transcribed from
+# "Criteria for Using the Child and Adult Core Set Measures to Assess Trends in State
+# Performance in Medicaid and CHIP" (Methods Brief, Sept 2025), Tables 1 and 2:
+# https://www.medicaid.gov/medicaid/quality-of-care/downloads/trend-methods-brief-2024.pdf
+# rate_regex (optional) narrows a row to matching rate definitions; the first matching row wins,
+# so rate-specific rows come before the measure-wide row. determination is one of
+# Trend | Trend with caution | Do Not Trend. Rows with source=not_assessed cover measures that
+# left the Core Set (or were renamed) before 2024 and are therefore outside CMS's assessment.
+program,measure_abbr,rate_regex,determination,reason,source
+Child Core Set,ADD-CH,,Trend with caution,"Instructions for calculating covered days changed in 2024; ""discharge date"" replaced with ""admission date"" when identifying the eligible population",cms_methods_brief_2024_table1
+Child Core Set,CDF-CH,,Do Not Trend,Not publicly reported 2022-2024; fewer than 20 states reported in all three years,cms_methods_brief_2024_table1
+Child Core Set,FUH-CH,,Trend,Met all three criteria,cms_methods_brief_2024_table1
+Child Core Set,APM-CH,Ages 1 to 17$,Trend,Total rate (ages 1 to 17) met all three criteria,cms_methods_brief_2024_table1
+Child Core Set,APM-CH,,Do Not Trend,Age-group rates were not publicly reported for all three years,cms_methods_brief_2024_table1
+Child Core Set,APP-CH,Ages 1 to 17$,Trend,Total rate (ages 1 to 17) met all three criteria,cms_methods_brief_2024_table1
+Child Core Set,APP-CH,,Do Not Trend,Age-group rates were not publicly reported for all three years,cms_methods_brief_2024_table1
+Child Core Set,FUA-CH,,Do Not Trend,"Specification changes in 2023 (AOD to SUD terminology, pharmacy benefit requirement, overdose ED visits added to denominator, revised numerator) and 2024 (residential-treatment exclusion)",cms_methods_brief_2024_table1
+Child Core Set,FUM-CH,,Trend,Met all three criteria,cms_methods_brief_2024_table1
+Child Core Set,WCC-CH,,Trend,Met all three criteria,cms_methods_brief_2024_table1
+Child Core Set,CHL-CH,,Trend with caution,Optional exclusion for pregnancy tests made required for 2024 reporting,cms_methods_brief_2024_table1
+Child Core Set,CIS-CH,,Trend,Met all three criteria,cms_methods_brief_2024_table1
+Child Core Set,W30-CH,,Trend,Met all three criteria,cms_methods_brief_2024_table1
+Child Core Set,IMA-CH,,Trend,Met all three criteria,cms_methods_brief_2024_table1
+Child Core Set,DEV-CH,,Do Not Trend,"Reporting guidance changed in 2024: screenings count only if the state confirms they are global, not domain-specific",cms_methods_brief_2024_table1
+Child Core Set,WCV-CH,,Trend,Met all three criteria,cms_methods_brief_2024_table1
+Child Core Set,LSC-CH,,Do Not Trend,Not publicly reported for all three years,cms_methods_brief_2024_table1
+Child Core Set,LBW-CH,,Trend,Met all three criteria,cms_methods_brief_2024_table1
+Child Core Set,PPC2-CH,,Do Not Trend,Not publicly reported for all three years; from 2024 the measure includes both prenatal and postpartum rates for beneficiaries under age 21,cms_methods_brief_2024_table1
+Child Core Set,CCP-CH,Within 3 Days,Trend,3-days-postpartum rates met all three criteria,cms_methods_brief_2024_table1
+Child Core Set,CCP-CH,,Do Not Trend,90-days-postpartum rates changed from 60 to 90 days in the 2023 specifications,cms_methods_brief_2024_table1
+Child Core Set,CCW-CH,,Trend,Met all three criteria,cms_methods_brief_2024_table1
+Child Core Set,LRCD-CH,,Trend,Met all three criteria,cms_methods_brief_2024_table1
+Child Core Set,AAB-CH,,Do Not Trend,Not publicly reported for all three years,cms_methods_brief_2024_table1
+Child Core Set,AMR-CH,,Trend,Met all three criteria,cms_methods_brief_2024_table1
+Child Core Set,AMB-CH,,Trend,Met all three criteria,cms_methods_brief_2024_table1
+Child Core Set,OEV-CH,,Trend,Met all three criteria,cms_methods_brief_2024_table1
+Child Core Set,TFL-CH,,Trend,Met all three criteria,cms_methods_brief_2024_table1
+Child Core Set,SFM-CH,,Trend,Met all three criteria,cms_methods_brief_2024_table1
+Child Core Set,CPC-CH,,Do Not Trend,Rates first reported for 2023 using data from the AHRQ CAHPS Database,cms_methods_brief_2024_table1
+Child Core Set,PPC-CH,,Do Not Trend,Replaced by PPC2-CH in the 2024 Core Set; not part of CMS's 2022-2024 assessment,not_assessed
+Adult Core Set,IET-AD,,Do Not Trend,"Specification changes in 2023 (member-based to SUD-episode-based measure, revised age groups and numerators) and 2024 (same-day episode deduplication)",cms_methods_brief_2024_table2
+Adult Core Set,MSC-AD,,Do Not Trend,Data source changed for some states in 2023 (AHRQ CAHPS Database),cms_methods_brief_2024_table2
+Adult Core Set,AMM-AD,,Trend with caution,Age criterion updated to include ages 18 and older as of the index prescription start date,cms_methods_brief_2024_table2
+Adult Core Set,CDF-AD,,Do Not Trend,Not publicly reported 2022-2024; fewer than 20 states reported in all three years,cms_methods_brief_2024_table2
+Adult Core Set,FUH-AD,,Trend,Met all three criteria,cms_methods_brief_2024_table2
+Adult Core Set,SSD-AD,,Trend,Met all three criteria,cms_methods_brief_2024_table2
+Adult Core Set,OUD-AD,Total Rate,Trend,Total rate met all three criteria,cms_methods_brief_2024_table2
+Adult Core Set,OUD-AD,,Do Not Trend,Medication-specific rates were not publicly reported for all three years,cms_methods_brief_2024_table2
+Adult Core Set,FUA-AD,,Do Not Trend,"Specification changes in 2023 (AOD to SUD terminology, pharmacy benefit requirement, overdose ED visits added to denominator, revised numerator) and 2024 (residential-treatment exclusion)",cms_methods_brief_2024_table2
+Adult Core Set,FUM-AD,,Trend,Met all three criteria,cms_methods_brief_2024_table2
+Adult Core Set,SAA-AD,,Trend,Met all three criteria,cms_methods_brief_2024_table2
+Adult Core Set,CCS-AD,,Trend,Met all three criteria,cms_methods_brief_2024_table2
+Adult Core Set,CHL-AD,,Trend with caution,Optional exclusion for pregnancy tests made required for 2024 reporting,cms_methods_brief_2024_table2
+Adult Core Set,COL-AD,,Do Not Trend,Not publicly reported for all three years,cms_methods_brief_2024_table2
+Adult Core Set,BCS-AD,,Trend,Met all three criteria,cms_methods_brief_2024_table2
+Adult Core Set,PPC2-AD,,Do Not Trend,Not publicly reported for all three years; from 2024 the measure includes both prenatal and postpartum rates for beneficiaries age 21 and older,cms_methods_brief_2024_table2
+Adult Core Set,CCP-AD,Within 3 Days,Trend,3-days-postpartum rates met all three criteria,cms_methods_brief_2024_table2
+Adult Core Set,CCP-AD,,Do Not Trend,90-days-postpartum rates changed from 60 to 90 days in the 2023 specifications,cms_methods_brief_2024_table2
+Adult Core Set,CCW-AD,,Trend,Met all three criteria,cms_methods_brief_2024_table2
+Adult Core Set,CBP-AD,,Trend,Met all three criteria,cms_methods_brief_2024_table2
+Adult Core Set,AAB-AD,,Trend,Met all three criteria,cms_methods_brief_2024_table2
+Adult Core Set,HBD-AD,Poor Control,Trend,HbA1c Poor Control (>9.0%) rate was in the Adult Core Set all three years with consistent specifications,cms_methods_brief_2024_table2
+Adult Core Set,HBD-AD,,Do Not Trend,HbA1c Control (<8.0%) rate was added by the measure steward in 2023 and is not available for all three years,cms_methods_brief_2024_table2
+Adult Core Set,PQI01-AD,,Trend,Met all three criteria,cms_methods_brief_2024_table2
+Adult Core Set,PQI05-AD,,Trend,Met all three criteria,cms_methods_brief_2024_table2
+Adult Core Set,PQI08-AD,,Trend,Met all three criteria,cms_methods_brief_2024_table2
+Adult Core Set,PQI15-AD,,Trend,Met all three criteria,cms_methods_brief_2024_table2
+Adult Core Set,PCR-AD,,Trend,Met all three criteria,cms_methods_brief_2024_table2
+Adult Core Set,AMR-AD,,Trend,Met all three criteria,cms_methods_brief_2024_table2
+Adult Core Set,OHD-AD,,Trend,Met all three criteria,cms_methods_brief_2024_table2
+Adult Core Set,COB-AD,,Trend,Met all three criteria,cms_methods_brief_2024_table2
+Adult Core Set,CPA-AD,,Do Not Trend,Rates first reported for 2023 using data from the AHRQ CAHPS Database,cms_methods_brief_2024_table2
+Adult Core Set,NCIIDD-AD,Life Decisions,Do Not Trend,Life Decisions Scale was not publicly reported for all three years,cms_methods_brief_2024_table2
+Adult Core Set,NCIIDD-AD,,Trend,Everyday Choices Scale and Always Has a Way to Get Places met all three criteria,cms_methods_brief_2024_table2
+Adult Core Set,NCIDDS-AD,,Do Not Trend,Renamed NCIIDD-AD in the 2024 Core Set; see NCIIDD-AD,not_assessed
+Adult Core Set,PPC-AD,,Do Not Trend,Replaced by PPC2-AD in the 2024 Core Set; not part of CMS's 2022-2024 assessment,not_assessed
+Adult Core Set,FVA-AD,,Do Not Trend,Not in the 2024 Core Set; not part of CMS's 2022-2024 assessment,not_assessed
+Adult Core Set,HPC-AD,,Do Not Trend,Not in the 2024 Core Set; not part of CMS's 2022-2024 assessment,not_assessed

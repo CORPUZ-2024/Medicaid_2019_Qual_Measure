@@ -46,17 +46,21 @@ are better for this measure"*. It is **directionality**, not a taxonomy. So:
 - Everywhere a rate is compared to a benchmark, the comparison is
   **direction-aware**:
   - `Eval` (On Track): higher-better → `rate ≥ median`; lower-better → `rate ≤ median`.
-  - Worst-quartile membership: higher-better → `rate ≤ Bottom Quartile`;
-    lower-better → `rate ≥ Top Quartile`.
-  - Trend baseline is computed **per direction group**, so improving and
-    declining measures never share a baseline.
+  - Worst-quartile membership uses CMS's **Bottom Quartile** column for both
+    directions, because CMS already orients it to the worst-performing quartile
+    (for lower-better rates it is the higher number, e.g. COB-AD 2024: bottom 15.9,
+    median 13.1, top 8.3): higher-better → `rate ≤ Bottom`; lower-better →
+    `rate ≥ Bottom`.
+  - Year-over-year changes are **direction-adjusted** (sign flipped for
+    lower-better rates) before any averaging, so a positive change always means
+    the rate got better.
 
 ## Page (A) — 2024 Measures by State and Domain (`state-domain.html`)
 
 Computed in the browser from `docs/data/view_b.json`; no extra build step.
 
 - **Observation** = one state × one 2024 measure rate (`MeasureKey` = program × measure × rate definition) with a
-  CMS `Eval`. **Above the median** = `Eval == "On Track"`, which is direction-aware
+  CMS `Eval`. **On track** (better than the median) = `Eval == "On Track"`, which is direction-aware
   (higher-better: `rate ≥ median`; lower-better: `rate ≤ median`).
 - **Ranked overview:** `score(state) = above-median rates / reported rates`
   within the selected program × domain (either can be *All*). A state is ranked
@@ -66,9 +70,8 @@ Computed in the browser from `docs/data/view_b.json`; no extra build step.
 - **State rates table:** one row per state × rate, with the CMS median and a gap
   oriented so that positive = better than the median.
 - **Domain composite:** per program × domain — states reporting ≥ 1 rate;
-  distinct measures (by CMS abbreviation); measure rates; **% of states above the
-  median** = share of reporting states whose own above-median share in that
-  domain is > 50%; rates reported per state (min · median · max); and states
+  distinct measures (by CMS abbreviation); measure rates; **% of states mostly on track** =
+  share of reporting states whose own on-track share in that domain is > 50%; rates reported per state (min · median · max); and states
   reporting every rate. The NPR depression-screening rates are excluded. The reporting-variation notes are generated from the
   same numbers.
 
@@ -101,46 +104,70 @@ Computed in the browser from `docs/data/view_b.json`; no extra build step.
   shares, sorted by `Child − Adult` descending; the gap is used only for ordering
   and is not displayed.
 
-## Section 2.2 — baseline & classification (`trend.py`)
+## Section 2.3 — which rates can be trended (`spec_audit.py`)
 
-For each `(ReportProg, MeasureType)` group and each adjacent-year transition
-(2022→2023, 2023→2024):
+Trendability comes from **CMS's own rate-level determinations** for 2022–2024,
+transcribed into `data/reference/cms_trendable_measures.csv` from the
+[CMS methods brief](https://www.medicaid.gov/medicaid/quality-of-care/downloads/trend-methods-brief-2024.pdf) (Tables 1 and 2). CMS's three criteria:
+
+1. The measure was publicly reported for each of the three years (public
+   reporting requires ≥ 25 states using Core Set specifications and meeting CMS
+   data-quality standards).
+2. A consistent set of at least 20 states reported it using Core Set
+   specifications in all three years.
+3. Specifications were comparable for all three years (no specification or
+   data-source change that would make results incomparable).
+
+CMS rates each measure, and sometimes each rate within a measure, **Trend**,
+**Trend with caution** or **Do Not Trend**. This build uses Trend and Trend with
+caution and flags the latter. CMS finds at least one trendable rate for 20 Child
+and 23 Adult Core Set measures ([CMS fact sheet](https://www.medicaid.gov/medicaid/quality-of-care/downloads/2024-core-set-reporting.pdf)); the build reproduces
+both counts. Measures that left the Core Set before 2024 (FVA-AD, HPC-AD,
+PPC-AD, PPC-CH; NCIDDS-AD was renamed NCIIDD-AD) are outside CMS's assessment and
+are not trended.
+
+**This site's additional check (not a CMS criterion):** a state's change is left
+out when CMS's comments record a state-reported deviation from the Core Set
+specifications in one year of the pair but not the other (the state changed how
+it calculated the rate). A deviation reported in both years is kept: it shifts
+the rate's level, not its change, and CMS still publishes and trends such rates.
+
+The state roll-up chart shows only states with at least 10 comparable changes;
+all states stay in the table.
+
+The 2024 mandatory-reporting change is carried as a window-level warning: CMS
+notes it may affect comparability with earlier years.
+
+## Section 2.2 — year-over-year baseline & classification (`trend.py`)
+
+For every state × rate × transition (2022→2023, 2023→2024) where the state
+reported the rate in both years and the change passed Section 2.3:
 
 ```
-DeltaRate(s) = StateRate(s, t) − StateRate(s, t−1)   for states reporting BOTH years
-baseline     = mean(DeltaRate) over that group ;  band = 0.5 × SD
+Δ rate        = StateRate(t) − StateRate(t−1)
+adj. Δ        = Δ rate  (higher-is-better)   |   −Δ rate  (lower-is-better)
+baseline      = mean(adj. Δ) over the same program × domain × transition
+band          = baseline ± 0.5 × SD(adj. Δ in that group)
+Improving     : adj. Δ > baseline + 0.5 SD
+Declining     : adj. Δ < baseline − 0.5 SD
+Stable        : otherwise
 ```
 
-Direction-aware classification:
+Groups are **program × domain**. A program × domain × transition with no
+comparable change is listed on the Trends page with the reason (for example,
+every rate in Experience of Care is “Do Not Trend” because CAHPS data were first
+reported for 2023).
 
-| Direction | Improving | Declining |
-|---|---|---|
-| higher-better | Δ > baseline + 0.5 SD | Δ < baseline − 0.5 SD |
-| lower-better | Δ < baseline − 0.5 SD | Δ > baseline + 0.5 SD |
+**State roll-up — mean adj. Δ** = sum of the state's adj. Δ values ÷ number of
+comparable changes, per program. Worked example (from the Trends page, which
+shows it for any state): a higher-is-better rate going 50.0 → 52.0 gives adj. Δ
+= +2.0; a lower-is-better rate going 20.0 → 21.0 gives Δ = +1.0 and adj. Δ =
+−1.0; mean adj. Δ for those two changes = (+2.0 − 1.0) ÷ 2 = +0.5. Rates are in
+their own units, so per-100,000 admission rates move in larger steps than
+percentages.
 
-else **Stable**. `improve_delta` is the direction-adjusted change (positive =
-better) and is what the rollups average.
-
-**Persistent Bottom Quartile:** in worst-quartile territory (direction-aware,
-using CMS's own threshold columns) in ≥ 2 of the 3 years, regardless of movement.
-
-## Section 2.3 — comparability gate (`spec_audit.py`)
-
-Before a DeltaRate is shown as a trend line it must pass all of:
-
-- **2.3b trendable** — present all 3 years **and** ≥ 20 states reporting in all 3
-  years **and** no specification change in the window. This is a **computed
-  approximation** of CMS's criterion; populate
-  `data/reference/cms_trendable_measures.csv` to use CMS's own list instead.
-- **2.3c specification change** — from `data/reference/spec_changes.csv`, seeded
-  with the confirmed 2024 redefinition of *Prenatal and Postpartum Care*.
-- **2.3d "other specifications"** — a `(year, state, measure)` whose comment or
-  methodology text indicates the state deviated from the standard specification.
-  If either state in a pairwise comparison is flagged in either year, the
-  comparison renders as **Not comparable**.
-
-**2.3a** (Child + Adult-behavioral-health reporting became mandatory with the
-2024 Core Set) is carried as a window-level warning on the Trends page.
+**Persistent Bottom Quartile:** the state's rate is in CMS's bottom
+(worst-performing) quartile in ≥ 2 of the 3 years, regardless of movement.
 
 ## Section 3.1 — policy context
 
@@ -150,10 +177,8 @@ outside the data-refresh cycle, shown as the site's first page. Forward-looking;
 
 ## Removed in this version
 
-The HHS-region stratification (Section 2.4) and the at-risk score (Section 3.2)
-are preserved, with their code and pages, on the
-[2026 Version V1 (Expanded Scope) branch](https://github.com/CORPUZ-2024/Medicaid_2019_Qual_Measure/tree/2026_Version_V1_Expanded_Scope)
-and in the [V1 archive](v1/methodology.html).
+Analyses that were in V1 and are not part of this version are preserved on the
+[2026 Version V1 (Expanded Scope) branch](https://github.com/CORPUZ-2024/Medicaid_2019_Qual_Measure/tree/2026_Version_V1_Expanded_Scope).
 
 ## Reproduce
 

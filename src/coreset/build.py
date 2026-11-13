@@ -27,12 +27,10 @@ def main() -> None:
     view_b = viewb.build_view_b(df)
 
     # ---- Section 2.2 / 2.3 ---------------------------------------------------
-    # (2.4 regional and 3.2 risk were removed in this version; they live on the
-    #  2026_Version_V1_Expanded_Scope branch.)
-    trend_raw = trend.classify(df)
-    audit = spec_audit.audit_summary(df)
-    gated_detail = spec_audit.gate_trend_detail(trend_raw["detail"], df)
-    trend_raw["detail_gated"] = gated_detail
+    changes = trend.deltas(df)
+    gated = spec_audit.gate(changes, df)
+    trend_raw = trend.classify(gated, df)
+    audit = spec_audit.audit_summary(df, gated)
 
     meta = {
         "generated_utc": generated,
@@ -51,7 +49,7 @@ def main() -> None:
         "baseline": trend_raw["baseline"],
         "state_rollup": trend_raw["state_rollup"],
         "measure_rollup": trend_raw["measure_rollup"],
-        "detail": gated_detail,
+        "detail": trend_raw["detail"],
         "persistent_bottom": trend_raw["persistent_bottom"],
         "audit": audit,
     })

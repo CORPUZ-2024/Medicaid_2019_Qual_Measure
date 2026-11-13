@@ -1,4 +1,4 @@
-"""Paths and shared constants for the Core Set View B extension pipeline."""
+"""Paths and shared constants for the Child and Adult Core Set pipeline."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[2]
 DATA = ROOT / "data"
 RAW = DATA / "raw"
 PROCESSED = DATA / "processed"
-REGION_LOOKUP = DATA / "region_lookup.csv"
+STATE_LOOKUP = DATA / "state_lookup.csv"
 REFERENCE = DATA / "reference"
 DOCS = ROOT / "docs"
 DOCS_DATA = DOCS / "data"
@@ -113,15 +113,16 @@ def color_scale_for(domain: str) -> str:
 SURVEY_DOMAINS = {"Experience of Care", "Long-Term Services and Supports"}
 
 # ---------------------------------------------------------------------------
-# Trendability filter thresholds (spec 2.3b).
+# CMS thresholds (documented; trendability itself comes from CMS's own list in
+# data/reference/cms_trendable_measures.csv).
 # ---------------------------------------------------------------------------
-TREND_MIN_STATES = 20            # consistent set of >= 20 states across all 3 years
+TREND_MIN_STATES = 20            # CMS: consistent set of >= 20 states in all 3 years
 PUBLIC_RELEASE_MIN_STATES = 25   # CMS public-release threshold (spec limitation #5)
 
 # Composite OnTrackShare ranking cutoff (spec 1.2.B).
 MIN_REPORTED_MEASURES_FOR_RANKING = 10
 
-# Classification band width, in SD of the per-group baseline delta (spec 2.2).
+# Classification band width, in SD of the program x domain baseline (spec 2.2).
 CLASS_BAND_SD = 0.5
 
 # Persistent-bottom-quartile: in bottom-quartile territory in >= N of 3 years.

@@ -33,7 +33,7 @@ from __future__ import annotations
 
 import pandas as pd
 
-from . import config, ingest, regions
+from . import config, ingest, states
 
 DEDUPE_KEY = [
     "CoreSetYear", "State", "ReportProg", "Domain",
@@ -66,16 +66,19 @@ def _derive_eval(df: pd.DataFrame) -> pd.Series:
 
 
 def _in_bottom_quartile(df: pd.DataFrame) -> pd.Series:
-    """Direction-aware 'worst quartile' membership using CMS's own quartile
-    threshold columns.  higher_better -> rate at/below Bottom; lower_better ->
-    rate at/above Top (a high rate is the bad end)."""
+    """Worst-quartile membership using CMS's own threshold columns.
+
+    CMS's "Bottom Quartile" column is already the worst-performing quartile
+    threshold for both directions (for lower-is-better measures it is the HIGHER
+    number, e.g. COB-AD 2024: bottom 15.9, median 13.1, top 8.3). So:
+    higher_better -> rate at/below Bottom; lower_better -> rate at/above Bottom."""
     higher = df["Direction"].eq(config.DIRECTION_HIGHER)
     have = df["StateRate"].notna()
     res = pd.Series(pd.NA, index=df.index, dtype="object")
     m = have & higher & df["Bottom"].notna()
     res[m] = df.loc[m, "StateRate"] <= df.loc[m, "Bottom"]
-    m = have & ~higher & df["Top"].notna()
-    res[m] = df.loc[m, "StateRate"] >= df.loc[m, "Top"]
+    m = have & ~higher & df["Bottom"].notna()
+    res[m] = df.loc[m, "StateRate"] >= df.loc[m, "Bottom"]
     return res.astype("object")
 
 
@@ -106,7 +109,7 @@ def build_clean(write: bool = True) -> pd.DataFrame:
     # spec_audit can derive the 2.3d "other specifications" state-level
     # comparability flag from them.
 
-    canonical = regions.attach_regions(canonical)
+    canonical = states.attach_state_abbr(canonical)
 
     canonical = canonical.sort_values(
         ["CoreSetYear", "ReportProg", "Domain", "MeasureName", "RateDefinition", "State"]

@@ -12,11 +12,18 @@ const CS = {
   pct(x, d=0){ return x===null||x===undefined ? '–' : (100*x).toFixed(d)+'%'; },
   pill(kind, text){ return `<span class="pill ${kind}">${text}</span>`; },
   classPill(c){
-    const m = {Improving:'good', Declining:'bad', Stable:'stable',
-               'Not comparable':'na', 'Persistent Bottom Quartile':'warn'};
+    const m = {Improving:'good', Declining:'bad', Stable:'stable', 'Not comparable':'na'};
     return CS.pill(m[c]||'na', c);
   },
-  regionName(r){ return r ? `Region ${r}` : '–'; },
+  // rates: 2 decimals when the measure's values are small (e.g. PCR-AD ratio ~0.99),
+  // so a displayed rate never looks equal to the median when it is not
+  rate(x, ref){ return CS.fmt(x, (ref!=null && Math.abs(ref)<10) ? 2 : 1); },
+  esc(s){ return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); },
+  // sortable header; `tip` (a definition) shows on hover and does not change sorting
+  th(label, tip, num){
+    return `<th data-k${num?' class="num"':''}${tip?` title="${CS.esc(tip)}"`:''}>${label}${tip?'<span class="tip" aria-hidden="true">ⓘ</span>':''}</th>`;
+  },
+  emptyRow(cols, why){ return `<tr class="empty"><td colspan="${cols}">${why}</td></tr>`; },
   // Section 1 "above the median" = CMS Eval "On Track": the state rate is at least as
   // good as the CMS median, direction-aware (lower is better for some measures).
   above(b){ return b.eval==='On Track'; },
@@ -96,13 +103,24 @@ const CS = {
     table.querySelectorAll('th[data-k]').forEach((th,ci)=>{
       th.addEventListener('click',()=>{
         const tb=table.tBodies[0], rows=[...tb.rows];
+        if(rows.length<2 || rows.some(r=>r.classList.contains('empty'))) return;
+        table.querySelectorAll('th[data-k]').forEach(h=>{ if(h!==th){ delete h.dataset.dir; h.removeAttribute('aria-sort'); }});
         const num=th.classList.contains('num');
         const dir=th.dataset.dir==='asc'?'desc':'asc'; th.dataset.dir=dir;
+        th.setAttribute('aria-sort', dir==='asc'?'ascending':'descending');
+        // rows with a merged note cell, and blank / non-numeric values, always sort last
+        const val=r=>{
+          const c=r.cells.length===table.tHead.rows[0].cells.length ? r.cells[ci] : null;
+          if(!c) return null;
+          const v=c.dataset.v ?? c.textContent.trim();
+          if(num){ const f=parseFloat(String(v).replace(/[,%+]/g,'')); return Number.isFinite(f)?f:null; }
+          return v==='' ? null : String(v);
+        };
         rows.sort((a,b)=>{
-          let x=a.cells[ci].dataset.v ?? a.cells[ci].textContent;
-          let y=b.cells[ci].dataset.v ?? b.cells[ci].textContent;
-          if(num){x=parseFloat(x)||0;y=parseFloat(y)||0;return dir==='asc'?x-y:y-x;}
-          return dir==='asc'?String(x).localeCompare(y):String(y).localeCompare(x);
+          const x=val(a), y=val(b);
+          if(x===null||y===null) return (x===null)-(y===null);
+          const c = num ? x-y : x.localeCompare(y);
+          return dir==='asc' ? c : -c;
         });
         rows.forEach(r=>tb.appendChild(r));
       });

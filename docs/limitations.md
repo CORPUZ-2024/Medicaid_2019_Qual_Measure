@@ -10,21 +10,25 @@ boundary — is **half** the trend signal, not a third. Every trend line is gate
 Section 2.3 before it is drawn; a 2023→2024 "decline" for a previously
 inconsistent reporter may be a reporting-completeness effect.
 
-## 2. Matching CMS's window is not the same as matching CMS's filter
+## 2. CMS's trendability is measure-level; state changes are not all equal
 
-The date range here is identical to CMS's own 2022–2024 trending product, which
-is a real improvement over an independently chosen window. But the
-**trendable-measure filter in this build is a computed approximation** of CMS's
-three-part criterion, not CMS's published list. Populate
-`data/reference/cms_trendable_measures.csv` from the CMS *Criteria for Using the
-2024 … Core Set Measures* brief to replace it. CMS found 19 Child and 22 Adult
-measures trendable for this window.
+Which rates are trended follows CMS's own determinations ([methods brief](https://www.medicaid.gov/medicaid/quality-of-care/downloads/trend-methods-brief-2024.pdf)).
+CMS judges trendability for the measure across a consistent set of ≥ 20 states;
+this site then uses every state that reported the rate in both years of a
+transition. A state that reported only in 2023 and 2024 contributes one change,
+not two. CMS's own trend results use the change in the **state median** from 2022
+to 2024 with a Wilcoxon signed-rank test; this site's state-level classification
+is a different, descriptive measure.
 
-## 3. "Baseline = average YoY change" is a relative standard
+## 3. "Baseline = average YoY change" is a relative standard, and mixes units
 
-If every state declines on a measure in a given year, the baseline shifts down
+If every state declines in a domain in a given year, the baseline shifts down
 with them, and a state merely tracking the new, worse baseline reads as
-**Stable**. The classification flags *relative* outliers, not absolute quality.
+**Stable**; a state can even read as **Improving** with a small decline. The
+classification flags *relative* outliers, not absolute quality. Baselines are
+pooled by program × domain, and some domains combine percentages with
+per-100,000 or per-1,000 rates and ratios, so the SD in those groups is driven by
+the larger-unit rates.
 
 ## 4. Row-level ambiguity in the source data
 
@@ -44,10 +48,9 @@ counted as a low score.
 
 ## 6. Removed analyses
 
-The beneficiary-magnitude estimate, the at-risk score and the HHS-region view
-were removed from this version. Their limitations are documented on the
-[2026 Version V1 (Expanded Scope) branch](https://github.com/CORPUZ-2024/Medicaid_2019_Qual_Measure/tree/2026_Version_V1_Expanded_Scope) and in the
-[V1 archive](v1/limitations.html).
+Analyses that were in V1 and are not part of this version, and their
+limitations, are documented on the
+[2026 Version V1 (Expanded Scope) branch](https://github.com/CORPUZ-2024/Medicaid_2019_Qual_Measure/tree/2026_Version_V1_Expanded_Scope).
 
 ## 7. The policy analysis is forward-looking and time-sensitive
 
@@ -57,10 +60,10 @@ would be a causal claim the data cannot support; their role is contextualising
 risk for future cycles. See the dated panel on the [Policy Context](index.html)
 page.
 
-## 8. "Above the median" composites are relative by construction
+## 8. "On track" composites are relative by construction
 
 The CMS median splits the reporting states roughly in half on every measure. So
-the domain composite on [(A)](state-domain.html) ("% of states above the median")
+the domain composite on [(A)](state-domain.html) ("% of states mostly on track")
 measures how *broadly* above-median performance is spread across states, not
 whether the nation got better in absolute terms. A state's rank on (A) is also
 limited to the measures it chose to report. The ranking cutoff (at least half of

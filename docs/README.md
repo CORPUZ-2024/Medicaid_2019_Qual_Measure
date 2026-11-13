@@ -7,14 +7,13 @@ Static site for **Child and Adult Health Care Quality Measures** (2026 Version V
 | `index.html` | **Policy Context** (first tab) — renders `policy-context.md` |
 | `state-domain.html` | **(A) 2024 Measures by State and Domain** — top/bottom-10 states, state rate table, domain composite |
 | `measures.html` | **(B) 2024 Across all States by Measure Type and Domain** — per-measure bars, composite on-track share |
-| `trends.html` | Trends 2022–24 — baseline, classification, comparability gate |
+| `trends.html` | Trends 2022–24 — CMS trendability, program × domain baseline, state roll-up with worked example |
 | `limitations.html` | Limitations (`limitations.md`) |
 | `methodology.html` | Methodology (`methodology.md`) |
 | `policy.html` | redirect to `index.html` (keeps old links working) |
-| `v1/` | **Frozen copy of the previous site** — 2026 Version V1 (Expanded Scope), incl. Regional and At-Risk |
+| `v1/` | **Frozen copy of the previous site** — 2026 Version V1 (Expanded Scope) |
 
-Removed from this version: `regional.html`, `risk.html` and their JSON. They are
-preserved on the
+Pages removed from this version are preserved on the
 [`2026_Version_V1_Expanded_Scope`](https://github.com/CORPUZ-2024/Medicaid_2019_Qual_Measure/tree/2026_Version_V1_Expanded_Scope)
 branch and served under `v1/`.
 
