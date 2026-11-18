@@ -31,8 +31,6 @@ that matter most. Eight pairs are still not matched: six that CMS marks Do Not T
 and two where the old and new rate measure different things (antidepressant 6-month
 → 12-week; ADD-CH 2+ visits → 1 visit). For the two different-rate pairs, the pipeline
 cannot pair both a same-rate and a different-rate predecessor to the same target key.
-The ranking and baseline sensitivity figures on this page were measured before these
-pairs were added and should be re-run.
 
 ## 3. "Baseline = average YoY change" is a relative standard, and mixes units
 
