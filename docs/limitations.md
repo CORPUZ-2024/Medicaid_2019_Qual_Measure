@@ -10,12 +10,12 @@ boundary — is **half** the trend signal, not a third. Every trend line is gate
 Section 2.3 before it is drawn; a 2023→2024 "decline" for a previously
 inconsistent reporter may be a reporting-completeness effect.
 
-## 2. CMS's trendability is measure-level; state changes are not all equal
+## 2. CMS decides trendability per measure rate; state rate changes are not all equal
 
 Which rates are trended follows CMS's own determinations ([methods brief](https://www.medicaid.gov/medicaid/quality-of-care/downloads/trend-methods-brief-2024.pdf)).
 CMS judges trendability for the measure across a consistent set of ≥ 20 states;
 this site then uses every state that reported the rate in both years of a
-transition. A state that reported only in 2023 and 2024 contributes one change,
+transition. A state that reported only in 2023 and 2024 contributes one state rate change,
 not two. CMS's own trend results use the change in the **state median** from 2022
 to 2024 with a Wilcoxon signed-rank test; this site's state-level classification
 is a different, descriptive measure.

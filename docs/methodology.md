@@ -67,7 +67,7 @@ Computed in the browser from `docs/data/view_b.json`; no extra build step.
   only if it reported at least `ceil(rates in selection / 2)` rates. Ties are
   broken by number reported. Top 10 and bottom 10 are listed, with excluded states
   named.
-- **State rates table:** one row per state × rate, with the CMS median and a gap
+- **State rates table:** one row per state × measure rate, with the CMS median and a gap
   oriented so that positive = better than the median.
 - **Domain composite:** per program × domain — states with ≥ 1 published state rate;
   distinct measures (by CMS abbreviation); **% of states mostly on track** =
@@ -127,13 +127,13 @@ both counts. Measures that left the Core Set before 2024 (FVA-AD, HPC-AD,
 PPC-AD, PPC-CH; NCIDDS-AD was renamed NCIIDD-AD) are outside CMS's assessment and
 are not trended.
 
-**This site's additional check (not a CMS criterion):** a state's change is left
+**This site's additional check (not a CMS criterion):** a state rate change is left
 out when CMS's comments record a state-reported deviation from the Core Set
 specifications in one year of the pair but not the other (the state changed how
 it calculated the rate). A deviation reported in both years is kept: it shifts
 the rate's level, not its change, and CMS still publishes and trends such rates.
 
-The state roll-up chart shows only states with at least 10 comparable changes;
+The state roll-up chart shows only states with at least 10 comparable state rate changes;
 all states stay in the table.
 
 The 2024 mandatory-reporting change is carried as a window-level warning: CMS
@@ -141,8 +141,8 @@ notes it may affect comparability with earlier years.
 
 ## Section 2.2 — year-over-year baseline & classification (`trend.py`)
 
-For every state × rate × transition (2022→2023, 2023→2024) where the state
-reported the rate in both years and the change passed Section 2.3:
+For every state rate change — state × measure rate × transition (2022→2023, 2023→2024) — where the state
+reported the measure rate in both years and the change passed Section 2.3:
 
 ```
 Δ rate        = StateRate(t) − StateRate(t−1)
@@ -160,10 +160,10 @@ every rate in Experience of Care is “Do Not Trend” because CAHPS data were f
 reported for 2023).
 
 **State roll-up — mean adj. Δ** = sum of the state's adj. Δ values ÷ number of
-comparable changes, per program. Worked example (from the Trends page, which
+comparable state rate changes, per program. Worked example (from the Trends page, which
 shows it for any state): a higher-is-better rate going 50.0 → 52.0 gives adj. Δ
 = +2.0; a lower-is-better rate going 20.0 → 21.0 gives Δ = +1.0 and adj. Δ =
-−1.0; mean adj. Δ for those two changes = (+2.0 − 1.0) ÷ 2 = +0.5. Rates are in
+−1.0; mean adj. Δ for those two state rate changes = (+2.0 − 1.0) ÷ 2 = +0.5. Rates are in
 their own units, so per-100,000 admission rates move in larger steps than
 percentages.
 

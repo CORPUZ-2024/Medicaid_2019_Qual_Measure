@@ -29,7 +29,7 @@
     <ol id="criteria"></ol>
     <p>Measure rates that meet all three are “Trend”. CMS marks some as “Trend with caution” when a
     smaller specification change occurred; this site includes those and flags them. This site
-    also applies one extra check that is <b>not</b> a CMS criterion: a state's change is left out
+    also applies one extra check that is <b>not</b> a CMS criterion: a state rate change is left out
     when CMS's comments record a deviation from the Core Set specifications in one year of the
     pair but not the other, meaning the state changed how it calculated its state rate. A deviation
     reported in both years is kept, because it shifts the level, not the change.</p>
@@ -58,7 +58,7 @@
   <!-- 2. baseline -->
   <h2>Year-over-year baseline by program × domain</h2>
   <p class="lede">For every program × domain × transition, the baseline is the average
-  direction-adjusted change across all comparable state-rate changes (one per state × measure rate) in that group. A state's
+  direction-adjusted change across all comparable state rate changes (one per state × measure rate) in that group. A state rate
   change is <b>Improving</b> / <b>Declining</b> when it is more than ½ SD better / worse than its
   group's baseline, otherwise <b>Stable</b>. These labels are relative to the baseline: a state can
   be “Improving” with a small decline if most states declined more.</p>
@@ -74,7 +74,7 @@
     <label class="ctl">Program
       <select id="s-prog"><option>Child Core Set</option><option>Adult Core Set</option></select></label>
   </div>
-  <p class="lede">Each state's mean direction-adjusted change across all its comparable state-rate
+  <p class="lede">Each state's mean direction-adjusted change across all its comparable state rate
   changes (both transitions). Measure rates keep their own units, so a state's average can be pulled by
   a measure rate measured per 1,000 or per 100,000 (for example ED visits or admissions). Use the
   worked example below to see which measure rates drive a state's value.</p>
@@ -93,12 +93,12 @@
 
   <!-- 4. measures -->
   <h2>Measure rates moving most</h2>
-  <p class="lede">Each trendable measure rate's mean direction-adjusted change across all comparable state-rate
+  <p class="lede">Each trendable measure rate's mean direction-adjusted change across all comparable state rate
   changes (both transitions). Sorted worst first; click a header to re-sort.</p>
   <div class="card scroll"><table id="measure-table"></table></div>
 
   <!-- 5. detail -->
-  <h2>Comparable state × measure rate × transition detail</h2>
+  <h2>Comparable state rate changes (state × measure rate × transition)</h2>
   <div class="controls">
     <label class="ctl">Class
       <select id="d-class"><option value="">All</option><option>Improving</option>
@@ -123,7 +123,7 @@ const sgn=(v,d=2)=>v==null?'–':(v>0?'+':'')+CS.fmt(v,d);
 const DEF={
   delta:'Δ state rate = state rate in the later year − state rate in the earlier year, in the measure\'s own units (raw, not direction-adjusted).',
   adj:'Direction-adjusted Δ = Δ state rate for higher-is-better measure rates, −Δ state rate for lower-is-better measure rates. Positive always means the state rate got better.',
-  base:'Baseline = mean direction-adjusted Δ across all comparable state-rate changes (one per state × measure rate) in the same program × domain × transition.',
+  base:'Baseline = mean direction-adjusted Δ across all comparable state rate changes (one per state × measure rate) in the same program × domain × transition.',
   sd:'Standard deviation of the direction-adjusted Δ values in the group. The Stable band is baseline ± 0.5 SD.',
   cls:'Improving: adj. Δ > baseline + 0.5 SD. Declining: adj. Δ < baseline − 0.5 SD. Stable: otherwise. Relative to the group baseline, not to zero.',
 };
@@ -144,7 +144,7 @@ const DEF={
     [`${tb['Child Core Set']} of ${as['Child Core Set']}`,'Child Core Set measures with at least one trendable measure rate (CMS)'],
     [`${tb['Adult Core Set']} of ${as['Adult Core Set']}`,'Adult Core Set measures with at least one trendable measure rate (CMS)'],
     [`${CS.fmt(a.n_changes_comparable,0)} of ${CS.fmt(a.n_changes_total,0)}`,
-     `state-rate year-over-year changes used. Left out: ${CS.fmt(a.n_changes_excluded_cms,0)} on measure rates CMS does not trend, ${CS.fmt(a.n_changes_excluded_deviation_only,0)} only because the state changed its calculation method`],
+     `state rate changes used (year over year). Left out: ${CS.fmt(a.n_changes_excluded_cms,0)} on measure rates CMS does not trend, ${CS.fmt(a.n_changes_excluded_deviation_only,0)} only because the state changed its calculation method`],
   ].map(([v,k])=>`<div><div class="kpi">${v}<small>${k}</small></div></div>`).join('');
 
   const cur=a.determinations.filter(d=>d.years.includes(2024));
@@ -212,10 +212,10 @@ function drawBaseline(){
   const t=el('baseline');
   t.innerHTML=`<thead><tr>${CS.th('Program')}${CS.th('Domain')}${CS.th('Transition')}
     ${CS.th('Baseline (mean adj. Δ)',DEF.base,true)}${CS.th('SD',DEF.sd,true)}
-    ${CS.th('Stable band',  'Baseline − 0.5 SD to baseline + 0.5 SD. Changes inside the band are Stable.',true)}
-    ${CS.th('# of Measure rates Used','Number of measure rates used, counted across all reporting states for each measure in the domain (one per state × measure rate in this transition). A measure rate is used when the state reported it in both years, CMS trends it, and the state did not change its calculation method between the two years.',true)}
+    ${CS.th('Stable band',  'Baseline − 0.5 SD to baseline + 0.5 SD. State rate changes inside the band are Stable.',true)}
+    ${CS.th('# of State rate changes Used','Number of state rate changes used: one per reporting state × measure rate in this transition, across every measure in the domain. A state rate change is used when the state reported the measure rate in both years, CMS trends the measure rate, and the state did not change its calculation method between the two years.',true)}
     ${CS.th('States','Distinct states contributing at least one change.',true)}
-    ${CS.th('# of Measure rates Dropped','Number of measure rates dropped, counted across all reporting states for each measure in the domain (one per state × measure rate in this transition). A measure rate is dropped when CMS does not trend it or the state changed its calculation method between the two years.',true)}
+    ${CS.th('# of State rate changes Dropped','Number of state rate changes dropped: one per reporting state × measure rate in this transition, across every measure in the domain. A state rate change is dropped when CMS does not trend the measure rate or the state changed its calculation method between the two years.',true)}
     </tr></thead><tbody>${rows.map(({prog,dom,tr,b,why})=>why?`<tr>
       <td>${short(prog)}</td><td>${dom}</td><td>${tr}</td><td colspan="6" class="muted" data-v="">${why}</td></tr>`
      :`<tr><td>${short(prog)}</td><td>${dom}</td><td>${tr}</td>
@@ -236,14 +236,14 @@ function drawState(){
   const prog=el('s-prog').value, all=stateRows(), r=all.filter(x=>x.n_changes>=MIN_CHANGES);
   const few=all.filter(x=>x.n_changes<MIN_CHANGES);
   el('state-note').textContent = few.length
-    ? `Chart shows states with at least ${MIN_CHANGES} comparable changes. Not charted (too few changes for a stable average): ${few.map(x=>`${x.state} (${x.n_changes})`).join(', ')}. They remain in the table.`
-    : `Every state has at least ${MIN_CHANGES} comparable changes.`;
-  if(!r.length){ el('state-chart').innerHTML=`<p class="note">No comparable changes for ${prog}.</p>`; }
+    ? `Chart shows states with at least ${MIN_CHANGES} comparable state rate changes. Not charted (too few state rate changes for a stable average): ${few.map(x=>`${x.state} (${x.n_changes})`).join(', ')}. They remain in the table.`
+    : `Every state has at least ${MIN_CHANGES} comparable state rate changes.`;
+  if(!r.length){ el('state-chart').innerHTML=`<p class="note">No comparable state rate changes for ${prog}.</p>`; }
   else Plotly.newPlot('state-chart',[{
     type:'bar',orientation:'h',
     x:r.map(x=>x.mean_improve_delta), y:r.map(x=>x.abbr),
     marker:{color:r.map(x=>x.mean_improve_delta>=0?'#1a7f4b':'#b3341f')},
-    hovertext:r.map(x=>`${x.state}: mean adj. Δ ${sgn(x.mean_improve_delta)} over ${x.n_changes} changes<br>`+
+    hovertext:r.map(x=>`${x.state}: mean adj. Δ ${sgn(x.mean_improve_delta)} over ${x.n_changes} state rate changes<br>`+
       `${x.n_improving} improving · ${x.n_declining} declining · ${x.n_stable} stable`),
     hovertemplate:'%{hovertext}<extra></extra>'
   }],{
@@ -255,21 +255,21 @@ function drawState(){
 
   const t=el('state-table'), rows=all;
   t.innerHTML=`<thead><tr>${CS.th('State')}
-    ${CS.th('Changes','Comparable state-rate changes (measure rate × transition) for this state and program.',true)}
-    ${CS.th('Measure rates','Distinct trendable measure rates behind those changes.',true)}
-    ${CS.th('Improving','Changes classified Improving. '+DEF.cls,true)}
-    ${CS.th('Declining','Changes classified Declining. '+DEF.cls,true)}
-    ${CS.th('Stable','Changes classified Stable. '+DEF.cls,true)}
-    ${CS.th('Mean adj. Δ','Sum of the state\'s direction-adjusted Δ values ÷ number of changes. See the worked example below.',true)}
+    ${CS.th('State rate changes','Comparable state rate changes (measure rate × transition) for this state and program.',true)}
+    ${CS.th('Measure rates','Distinct trendable measure rates behind those state rate changes.',true)}
+    ${CS.th('Improving','State rate changes classified Improving. '+DEF.cls,true)}
+    ${CS.th('Declining','State rate changes classified Declining. '+DEF.cls,true)}
+    ${CS.th('Stable','State rate changes classified Stable. '+DEF.cls,true)}
+    ${CS.th('Mean adj. Δ','Sum of the state\'s direction-adjusted Δ values ÷ number of state rate changes. See the worked example below.',true)}
     ${CS.th('Persistent bottom','Measure rates (any year, trendable or not) where the state was in CMS\'s bottom (worst-performing) quartile in at least 2 of the 3 years.',true)}
     </tr></thead><tbody>${rows.length?rows.map(x=>`<tr>
-      <td data-v="${x.state}">${x.state}${x.n_changes<MIN_CHANGES?' <span class="muted" title="Fewer than 10 comparable changes; not charted.">(few changes)</span>':''}</td>
+      <td data-v="${x.state}">${x.state}${x.n_changes<MIN_CHANGES?' <span class="muted" title="Fewer than 10 comparable state rate changes; not charted.">(few changes)</span>':''}</td>
       <td class="num" data-v="${x.n_changes}">${x.n_changes}</td><td class="num" data-v="${x.n_rates}">${x.n_rates}</td>
       <td class="num" data-v="${x.n_improving}">${x.n_improving}</td><td class="num" data-v="${x.n_declining}">${x.n_declining}</td>
       <td class="num" data-v="${x.n_stable}">${x.n_stable}</td>
       <td class="num" data-v="${x.mean_improve_delta}">${sgn(x.mean_improve_delta)}</td>
       <td class="num" data-v="${x.n_persistent_bottom}">${x.n_persistent_bottom}</td></tr>`).join('')
-      :CS.emptyRow(8,'No comparable changes for this program.')}</tbody>`;
+      :CS.emptyRow(8,'No comparable state rate changes for this program.')}</tbody>`;
   CS.sortable(t);
 }
 
@@ -284,7 +284,7 @@ function drawExample(){
   const rows=T.detail.filter(d=>d.program===prog&&d.state===st)
     .sort((a,b)=>a.transition.localeCompare(b.transition)||a.measure_abbr.localeCompare(b.measure_abbr));
   const roll=T.state_rollup.find(x=>x.program===prog&&x.state===st);
-  if(!rows.length||!roll){ el('ex-calc').innerHTML='<p class="note">No comparable changes for this state.</p>'; el('ex-table').innerHTML=''; return; }
+  if(!rows.length||!roll){ el('ex-calc').innerHTML='<p class="note">No comparable state rate changes for this state.</p>'; el('ex-table').innerHTML=''; return; }
   const sum=rows.reduce((a,d)=>a+d.improve_delta,0);
   const eg=rows.find(d=>d.direction==='lower_better')||rows[0], eh=rows.find(d=>d.direction==='higher_better')||rows[0];
   const step=d=>`${NAME[d.measure_key].display_name} (${d.transition.replace('->','→')}): `+
@@ -294,9 +294,9 @@ function drawExample(){
   el('ex-calc').innerHTML=`<ol>
     <li>For each comparable measure rate and transition, take the change in the state rate and flip the sign
       for lower-is-better measure rates. For example:<ul><li>${step(eh)}</li>${eg!==eh?`<li>${step(eg)}</li>`:''}</ul></li>
-    <li>Add the ${rows.length} direction-adjusted changes for ${st} (${short(prog)}):
+    <li>Add the ${rows.length} direction-adjusted state rate changes for ${st} (${short(prog)}):
       sum = <b>${sgn(sum)}</b> (all rows are listed below).</li>
-    <li>Divide by the number of changes: ${sgn(sum)} ÷ ${rows.length} = <b>${sgn(sum/rows.length)}</b>.
+    <li>Divide by the number of state rate changes: ${sgn(sum)} ÷ ${rows.length} = <b>${sgn(sum/rows.length)}</b>.
       The roll-up table shows <b>${sgn(roll.mean_improve_delta)}</b>; any difference is rounding
       of the per-row values.</li></ol>`;
   const t=el('ex-table');
@@ -318,11 +318,11 @@ function drawMeasureTable(){
   const t=el('measure-table');
   t.innerHTML=`<thead><tr>${CS.th('Program')}${CS.th('Domain')}${CS.th('Measure rate')}
     ${CS.th('CMS','CMS determination: Trend, or Trend with caution.')}
-    ${CS.th('Changes','Comparable state-rate changes across both transitions.',true)}
+    ${CS.th('State rate changes','Comparable state rate changes across both transitions.',true)}
     ${CS.th('Improving','States × transitions classified Improving. '+DEF.cls,true)}
     ${CS.th('Declining','States × transitions classified Declining. '+DEF.cls,true)}
     ${CS.th('Stable','States × transitions classified Stable. '+DEF.cls,true)}
-    ${CS.th('Mean adj. Δ','Mean of the direction-adjusted Δ over all comparable state-rate changes for this measure rate, in the measure rate\'s own units. Positive = better.',true)}
+    ${CS.th('Mean adj. Δ','Mean of the direction-adjusted Δ over all comparable state rate changes for this measure rate, in the measure rate\'s own units. Positive = better.',true)}
     </tr></thead><tbody>${r.map(x=>`<tr>
       <td>${short(x.program)}</td><td>${x.domain}</td>
       <td title="${CS.esc(x.rate_definition)}">${x.name} <span class="muted">${x.measure_abbr}</span></td>
@@ -341,7 +341,7 @@ function drawDetail(){
   if(c) rows=rows.filter(d=>d.classification===c);
   if(tr) rows=rows.filter(d=>d.transition===tr);
   if(st) rows=rows.filter(d=>d.state.toLowerCase().includes(st));
-  el('d-count').textContent=`${CS.fmt(rows.length,0)} comparable changes${rows.length>400?' (showing the first 400; narrow the filters to see more)':''}`;
+  el('d-count').textContent=`${CS.fmt(rows.length,0)} comparable state rate changes${rows.length>400?' (showing the first 400; narrow the filters to see more)':''}`;
   const t=el('detail-table');
   t.innerHTML=`<thead><tr>${CS.th('State')}${CS.th('Program')}${CS.th('Measure rate')}${CS.th('Transition')}
     ${CS.th('Δ state rate',DEF.delta,true)}${CS.th('Adj. Δ',DEF.adj,true)}
@@ -356,7 +356,7 @@ function drawDetail(){
       <td data-v="${d.classification}">${CS.classPill(d.classification)}</td></tr>`).join('')
     :CS.emptyRow(8, st&&!T.detail.some(d=>d.state.toLowerCase().includes(st))
         ? `No state name contains “${CS.esc(el('d-state').value)}”.`
-        : 'No comparable changes match this combination of filters.')}</tbody>`;
+        : 'No comparable state rate changes match this combination of filters.')}</tbody>`;
   CS.sortable(t);
 }
 </script>

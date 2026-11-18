@@ -16,6 +16,7 @@ data.medicaid.gov Core Set files.
 | **Measure** | A Core Set measure, identified by its CMS abbreviation | FUH-AD, Follow-Up After Hospitalization for Mental Illness | Counting what states reported: *Distinct measures* and *States that reported all measures* on (A), and the reporting-variation notes |
 | **Measure rate** | One rate definition within a measure (CMS column *Rate Definition*). A measure can have several, for age groups, follow-up windows or survey items | FUH-AD 7-day and FUH-AD 30-day are two measure rates of one measure | The unit of every performance calculation: on-track scores and rankings on (A), the per-measure charts and on-track shares on (B), and all trend calculations, including CMS trendability, which CMS decides per measure rate |
 | **State rate** | One state's published 2024 value for a measure rate (CMS column *State Rate*) | A state's published FUH-AD 7-day percentage | Comparisons with the CMS median, quartiles and year-over-year change (Δ state rate) |
+| **State rate change** | The change in one state's rate for one measure rate between two adjacent years (2022→2023 or 2023→2024) | A state's FUH-AD 7-day state rate in 2023 minus its 2022 state rate | Everything on the Trends page: baselines, *# of State rate changes Used / Dropped*, state and measure-rate roll-ups |
 
 - **Reported a measure:** on this site, a state counts as reporting a measure when at least
   one of its measure rates has a published state rate. A state can report a measure without

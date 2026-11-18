@@ -210,6 +210,7 @@ function domainRows(){
         minN:Math.min(...counts), medN:median(counts), maxN:Math.max(...counts),
         minM:Math.min(...mcounts), maxM:Math.max(...mcounts),
         full:mcounts.filter(n=>n===nMeas).length,
+        fullRates:sc.filter(s=>s.n===ms.length).length,
         perMeasure:ms.map(m=>m.n_states_reported)});
     }
   }
@@ -256,11 +257,12 @@ function renderDomains(){
   el('d-notes').innerHTML='<ul>'+rows.map(r=>{
     const gaps=[];
     if(r.states<N) gaps.push(`${N-r.states} of ${N} jurisdictions reported nothing in this domain`);
-    if(r.minM<r.measures) gaps.push(`states reported between ${r.minM} and ${r.maxM} of the domain's ${r.measures} measures; ${r.full} states reported all of them`);
-    if(r.minN<r.series) gaps.push(`states published between ${r.minN} and ${r.maxN} of the domain's ${r.series} measure rates`);
     const lo=Math.min(...r.perMeasure), hi=Math.max(...r.perMeasure);
     if(hi-lo>=10) gaps.push(`participation by measure rate ranges from ${lo} to ${hi} states, so the composite leans on the most widely reported measure rates`);
-    return `<li><b>${short(r.program)} · ${r.domain}:</b> ${gaps.length?gaps.join('; ')+'.':'every reporting state reported every measure rate — fully comparable.'}</li>`;
+    const lead=`There are ${r.measures} measure${r.measures===1?'':'s'} and ${r.series} measure rate${r.series===1?'':'s'}. `+
+      `Of the ${r.states} reporting states, ${r.full} reported at least 1 measure rate for each measure (reported all measures), `+
+      `while ${r.fullRates} reported all measure rates for all measures in this domain.`;
+    return `<li><b>${short(r.program)} · ${r.domain}:</b> ${lead}${gaps.length?' '+gaps.map(g=>g[0].toUpperCase()+g.slice(1)).join('. ')+'.':''}</li>`;
   }).join('')+'</ul>'+
   `<p class="note">Kinds of reporting variation behind these numbers: (1) <b>non-reporting</b> — a state reports
   no measure in a domain (common for voluntary Adult domains such as Long-Term Services and Supports and Experience of Care);
