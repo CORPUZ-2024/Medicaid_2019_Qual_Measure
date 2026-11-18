@@ -135,14 +135,14 @@ improve it, while access gets worse overall. Read the two kinds of signal side b
 |---|---|---|
 | Work requirements / 6-month redeterminations (2027+) | Fewer people meet continuous-enrollment rules, so denominators shrink and become healthier. Possible drops in well-care, prenatal, follow-up-after-ED and SUD-treatment measures for adults who churn | Enrollment and disenrollment counts, procedural-termination rates, uninsured rate (ACS), churn / re-enrollment within 90 days |
 | Provider-tax and SDP limits (2028+) | Lagged. Narrower networks, so access-sensitive measures (dental, behavioral-health follow-up, postpartum) may fall 1–3 reporting cycles later | Provider participation, MCO network adequacy, hospital margins, appointment wait times |
-| State administrative strain (eligibility systems) | Fewer voluntary Adult measures reported. More "other specifications" flags. Thinner reporting depth on page (A) | Count of measures reported per state, timeliness of QMR submissions |
+| State administrative strain (eligibility systems) | Fewer voluntary Adult measures reported. More "other specifications" flags. Fewer rates reported per state on page (A) | Count of measures reported per state, timeliness of QMR submissions |
 | Rural Health Transformation awards | Possible gains in rural-stratified rates (geography stratification) | Program progress reports, rural facility closures and openings |
 | Expansion in TX / GA / WI (if enacted) | Adult Core Set denominators grow with newly covered, often sicker adults. Rates may *dip* at first even as access improves | Coverage gains, uncompensated-care costs |
 | ACA subsidy expiration | Indirect. Shifts in who sits at the Medicaid eligibility boundary | Marketplace enrollment, premiums, uninsured rate |
 
 **Implication for this site:** the 2024 data predates all of the above. Treat the
 [(A)](state-domain.html) and [(B)](measures.html) pages as the **baseline**. When 2026–2028
-Core Set data arrive, compare state rates *and* reporting depth against this baseline, and pair
+Core Set data arrive, compare state rates *and* the number of measures each state reports against this baseline, and pair
 any change in a rate with enrollment data before reading it as a quality change.
 
 ## 4. Retained from the previous Policy Context panel

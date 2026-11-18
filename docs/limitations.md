@@ -67,8 +67,8 @@ the domain composite on [(A)](state-domain.html) ("% of states mostly on track")
 measures how *broadly* above-median performance is spread across states, not
 whether the nation got better in absolute terms. A state's rank on (A) is also
 limited to the measures it chose to report. The ranking cutoff (at least half of
-the selection's series) reduces, but does not remove, the effect of reporting
-depth.
+the selection's series) reduces, but does not remove, the effect of states reporting
+different numbers of measures.
 
 ## 9. Scope boundary
 

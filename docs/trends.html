@@ -176,11 +176,11 @@ function drawTrendable(){
   const t=el('trendable-table');
   t.innerHTML=`<thead><tr>${CS.th('Program')}${CS.th('Domain')}${CS.th('Measure rate')}
     ${CS.th('CMS determination','CMS\'s 2022–2024 trending decision for this rate (Methods Brief, Tables 1–2): Trend, Trend with caution, or Do Not Trend.')}
-    ${CS.th('Reason','CMS\'s stated reason, summarized. “Met all three criteria” means publicly reported all 3 years, ≥ 20 consistent states, comparable specifications. Reasons that apply to fewer than 3 measures are grouped as “Other”; hover a cell for the full CMS reason.')}
+    ${CS.th('Reason','CMS\'s stated reason, summarized. “Met all three criteria” means publicly reported all 3 years, ≥ 20 consistent states, comparable specifications. The Reason filter groups reasons that apply to fewer than 3 measures under “Other”.')}
     </tr></thead><tbody>${r.length?r.map(d=>`<tr>
       <td>${short(d.program)}</td><td>${d.domain}</td>
       <td title="${CS.esc(d.rate_definition)}">${d.display_name} <span class="muted">${d.measure_abbr}</span></td>
-      <td data-v="${d.determination}">${detPill(d.determination)}</td><td title="${CS.esc(d.reason)}">${d.reason_category}</td></tr>`).join('')
+      <td data-v="${d.determination}">${detPill(d.determination)}</td><td>${d.reason}</td></tr>`).join('')
       :CS.emptyRow(5,'No 2024 rates match this filter.')}</tbody>`;
   CS.sortable(t);
 }
@@ -208,9 +208,9 @@ function drawBaseline(){
   t.innerHTML=`<thead><tr>${CS.th('Program')}${CS.th('Domain')}${CS.th('Transition')}
     ${CS.th('Baseline (mean adj. Δ)',DEF.base,true)}${CS.th('SD',DEF.sd,true)}
     ${CS.th('Stable band',  'Baseline − 0.5 SD to baseline + 0.5 SD. Changes inside the band are Stable.',true)}
-    ${CS.th('# of Measure rates Used (From all reporting states for each measure in a given domain)','Number of measure rates used, counted across all reporting states for each measure in the domain (one per state × measure rate in this transition). A measure rate is used when the state reported it in both years, CMS trends it, and the state did not change its calculation method between the two years.',true)}
+    ${CS.th('# of Measure rates Used','Number of measure rates used, counted across all reporting states for each measure in the domain (one per state × measure rate in this transition). A measure rate is used when the state reported it in both years, CMS trends it, and the state did not change its calculation method between the two years.',true)}
     ${CS.th('States','Distinct states contributing at least one change.',true)}
-    ${CS.th('# of Measure rates Dropped (From all reporting states for each measure in a given domain)','Number of measure rates dropped, counted across all reporting states for each measure in the domain (one per state × measure rate in this transition). A measure rate is dropped when CMS does not trend it or the state changed its calculation method between the two years.',true)}
+    ${CS.th('# of Measure rates Dropped','Number of measure rates dropped, counted across all reporting states for each measure in the domain (one per state × measure rate in this transition). A measure rate is dropped when CMS does not trend it or the state changed its calculation method between the two years.',true)}
     </tr></thead><tbody>${rows.map(({prog,dom,tr,b,why})=>why?`<tr>
       <td>${short(prog)}</td><td>${dom}</td><td>${tr}</td><td colspan="6" class="muted" data-v="">${why}</td></tr>`
      :`<tr><td>${short(prog)}</td><td>${dom}</td><td>${tr}</td>
