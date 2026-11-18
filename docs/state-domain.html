@@ -61,9 +61,9 @@
   </div>
 
   <!-- A.3 domain composite -->
-  <h2>Domain composite — how the nation is doing by domain</h2>
+  <h2>Domain composite — how the country is doing by domain</h2>
   <p class="lede">For each program × domain: how many states reported, how many distinct
-  measures (CMS abbreviations) and measure rates the domain holds, and the <b>% of reporting
+  measures (CMS abbreviations) the domain holds, how many states reported all of its measures, and the <b>% of reporting
   states mostly on track</b> — states where more than half of their reported rates in that
   domain are at or better than the CMS median (exactly half does not count).</p>
   <div class="callout">How to read the %: the CMS median splits reporting states roughly in half
@@ -236,16 +236,12 @@ function renderDomains(){
   t.innerHTML=`<thead><tr>${CS.th('Program')}${CS.th('Domain')}
     ${CS.th('States reporting','States (incl. DC and Puerto Rico) with at least one published 2024 rate in this program × domain.',true)}
     ${CS.th('Distinct measures','Distinct CMS measures (by abbreviation) with published 2024 rates in the domain.',true)}
-    ${CS.th('Measure rates','Distinct rate definitions with published 2024 rates (one measure can have several, e.g. 7- and 30-day follow-up).',true)}
     ${CS.th('% of states mostly on track','Share of reporting states for which more than half of their reported rates in the domain are on track (at or better than the CMS median). Exactly half does not count.',true)}
-    ${CS.th('Rates reported per state (min · median · max)','Across reporting states: the fewest, median and most rates a state reported in this domain. Sorts by the median.',true)}
-    ${CS.th('States reporting every rate','Reporting states that published every rate in the domain.',true)}</tr></thead><tbody>${
+    ${CS.th('States that reported all Measures','Reporting states that published every measure rate in the domain.',true)}</tr></thead><tbody>${
     rows.map(r=>`<tr><td>${short(r.program)}</td><td>${r.domain}</td>
       <td class="num" data-v="${r.states}">${r.states}</td>
       <td class="num" data-v="${r.measures}">${r.measures}</td>
-      <td class="num" data-v="${r.series}">${r.series}</td>
       <td class="num" data-v="${r.pctStates}">${CS.pct(r.pctStates,0)}</td>
-      <td class="num" data-v="${r.medN}">${r.minN} · ${CS.fmt(r.medN,0)} · ${r.maxN}</td>
       <td class="num" data-v="${r.full}">${r.full} of ${r.states}</td></tr>`).join('')}</tbody>`;
   CS.sortable(t);
 

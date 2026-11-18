@@ -44,6 +44,10 @@
         <option value="caution">Trend with caution only</option><option value="">All 2024 rates</option></select></label>
     <label class="ctl">Program
       <select id="t-prog"><option value="">Both</option><option>Child Core Set</option><option>Adult Core Set</option></select></label>
+    <label class="ctl">Domain
+      <select id="t-dom"><option value="">All</option></select></label>
+    <label class="ctl">Reason
+      <select id="t-reason"><option value="">All</option></select></label>
   </div>
   <div id="t-count" class="measure-meta"></div>
   <div class="card scroll"><table id="trendable-table"></table></div>
@@ -140,7 +144,11 @@ const DEF={
      `state year-over-year changes used. Left out: ${CS.fmt(a.n_changes_excluded_cms,0)} on rates CMS does not trend, ${CS.fmt(a.n_changes_excluded_deviation_only,0)} only because the state changed its calculation method`],
   ].map(([v,k])=>`<div><div class="kpi">${v}<small>${k}</small></div></div>`).join('');
 
-  ['t-show','t-prog'].forEach(id=>el(id).addEventListener('change',drawTrendable));
+  const cur=a.determinations.filter(d=>d.years.includes(2024));
+  const opts=(id,vals)=>el(id).insertAdjacentHTML('beforeend',vals.map(v=>`<option>${CS.esc(v)}</option>`).join(''));
+  opts('t-dom',[...new Set(cur.map(d=>d.domain))].sort());
+  opts('t-reason',[...new Set(cur.map(d=>d.reason_category))].sort((x,y)=>(x==='Other')-(y==='Other')||x.localeCompare(y)));
+  ['t-show','t-prog','t-dom','t-reason'].forEach(id=>el(id).addEventListener('change',drawTrendable));
   drawTrendable();
   drawBaseline();
   el('s-prog').addEventListener('change',()=>{drawState();fillExample();});
@@ -156,9 +164,11 @@ function detPill(d){
 }
 
 function drawTrendable(){
-  const show=el('t-show').value, prog=el('t-prog').value;
+  const show=el('t-show').value, prog=el('t-prog').value, dom=el('t-dom').value, rsn=el('t-reason').value;
   let r=T.audit.determinations.filter(d=>d.years.includes(2024));
   if(prog) r=r.filter(d=>d.program===prog);
+  if(dom) r=r.filter(d=>d.domain===dom);
+  if(rsn) r=r.filter(d=>d.reason_category===rsn);
   if(show==='no') r=r.filter(d=>d.determination==='Do Not Trend');
   if(show==='caution') r=r.filter(d=>d.determination==='Trend with caution');
   r.sort((x,y)=>x.program.localeCompare(y.program)||x.domain.localeCompare(y.domain)||x.display_name.localeCompare(y.display_name));
@@ -166,11 +176,11 @@ function drawTrendable(){
   const t=el('trendable-table');
   t.innerHTML=`<thead><tr>${CS.th('Program')}${CS.th('Domain')}${CS.th('Measure rate')}
     ${CS.th('CMS determination','CMS\'s 2022–2024 trending decision for this rate (Methods Brief, Tables 1–2): Trend, Trend with caution, or Do Not Trend.')}
-    ${CS.th('Reason','CMS\'s stated reason, summarized. “Met all three criteria” means publicly reported all 3 years, ≥ 20 consistent states, comparable specifications.')}
+    ${CS.th('Reason','CMS\'s stated reason, summarized. “Met all three criteria” means publicly reported all 3 years, ≥ 20 consistent states, comparable specifications. Reasons that apply to fewer than 3 measures are grouped as “Other”; hover a cell for the full CMS reason.')}
     </tr></thead><tbody>${r.length?r.map(d=>`<tr>
       <td>${short(d.program)}</td><td>${d.domain}</td>
       <td title="${CS.esc(d.rate_definition)}">${d.display_name} <span class="muted">${d.measure_abbr}</span></td>
-      <td data-v="${d.determination}">${detPill(d.determination)}</td><td>${d.reason}</td></tr>`).join('')
+      <td data-v="${d.determination}">${detPill(d.determination)}</td><td title="${CS.esc(d.reason)}">${d.reason_category}</td></tr>`).join('')
       :CS.emptyRow(5,'No 2024 rates match this filter.')}</tbody>`;
   CS.sortable(t);
 }
@@ -198,17 +208,16 @@ function drawBaseline(){
   t.innerHTML=`<thead><tr>${CS.th('Program')}${CS.th('Domain')}${CS.th('Transition')}
     ${CS.th('Baseline (mean adj. Δ)',DEF.base,true)}${CS.th('SD',DEF.sd,true)}
     ${CS.th('Stable band',  'Baseline − 0.5 SD to baseline + 0.5 SD. Changes inside the band are Stable.',true)}
-    ${CS.th('Changes used','Comparable state × rate changes in the group (state reported the rate in both years; CMS trends the rate; the state did not change its calculation method between the two years).',true)}
-    ${CS.th('Rates','Distinct trendable measure rates contributing to the group.',true)}
+    ${CS.th('# of Measure rates Used (From all reporting states for each measure in a given domain)','Comparable state × rate changes in the group (state reported the rate in both years; CMS trends the rate; the state did not change its calculation method between the two years).',true)}
     ${CS.th('States','Distinct states contributing at least one change.',true)}
-    ${CS.th('Changes left out','State changes in the group dropped by the CMS trendability rule or the deviation check.',true)}
+    ${CS.th('# of Measure rates Dropped (From all reporting states for each measure in a given domain)','State changes in the group dropped by the CMS trendability rule or the deviation check.',true)}
     </tr></thead><tbody>${rows.map(({prog,dom,tr,b,why})=>why?`<tr>
-      <td>${short(prog)}</td><td>${dom}</td><td>${tr}</td><td colspan="7" class="muted" data-v="">${why}</td></tr>`
+      <td>${short(prog)}</td><td>${dom}</td><td>${tr}</td><td colspan="6" class="muted" data-v="">${why}</td></tr>`
      :`<tr><td>${short(prog)}</td><td>${dom}</td><td>${tr}</td>
       <td class="num" data-v="${b.baseline_mean}">${sgn(b.baseline_mean)}</td>
       <td class="num" data-v="${b.baseline_sd??''}">${CS.fmt(b.baseline_sd,2)}</td>
       <td class="num" data-v="${b.baseline_mean}">${b.baseline_sd==null?'–':`${sgn(b.baseline_mean-0.5*b.baseline_sd)} to ${sgn(b.baseline_mean+0.5*b.baseline_sd)}`}</td>
-      <td class="num" data-v="${b.n_changes}">${b.n_changes}</td><td class="num" data-v="${b.n_rates}">${b.n_rates}</td>
+      <td class="num" data-v="${b.n_changes}">${b.n_changes}</td>
       <td class="num" data-v="${b.n_states}">${b.n_states}</td><td class="num" data-v="${b.n_changes_excluded}">${b.n_changes_excluded}</td></tr>`).join('')}</tbody>`;
   CS.sortable(t);
 }

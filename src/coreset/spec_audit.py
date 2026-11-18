@@ -57,6 +57,9 @@ def _load_cms_rules() -> pd.DataFrame:
     return df
 
 
+REASON_MIN_MEASURES = 3
+
+
 def determinations(clean: pd.DataFrame) -> pd.DataFrame:
     """One row per MeasureKey with CMS's determination and reason."""
     rules = _load_cms_rules()
@@ -86,6 +89,13 @@ def determinations(clean: pd.DataFrame) -> pd.DataFrame:
         })
     df = pd.DataFrame(out)
     df["trendable"] = df["determination"].isin(TRENDABLE)
+    # Reason category for display: reasons that apply to fewer than
+    # REASON_MIN_MEASURES distinct measures (by abbreviation, among rates published
+    # for 2024) are grouped as "Other"; the full reason text is kept in "reason".
+    cur = df[df["years"].apply(lambda y: 2024 in y)]
+    n_meas = cur.groupby("reason")["measure_abbr"].nunique()
+    keep = set(n_meas[n_meas >= REASON_MIN_MEASURES].index)
+    df["reason_category"] = df["reason"].where(df["reason"].isin(keep), "Other")
     return df
 
 
