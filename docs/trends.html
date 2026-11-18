@@ -10,7 +10,7 @@
 <body>
 <header class="site"></header>
 <main>
-  <h2>Three-year trend: 2022 → 2024</h2>
+  <h2 id="sec-3yr">Three-year trend: 2022 → 2024</h2>
   <p class="lede">Year-over-year change in each state's rate, for the 2022→2023 and 2023→2024
   transitions (care delivered mostly in calendar years 2021–2023). The window matches CMS's own
   2022–2024 trend analysis. Only measure rates that CMS itself says can be trended are used.
@@ -19,10 +19,12 @@
   state's published value for a measure rate. Every calculation on this page is per measure rate.
   See <a href="index.html#terms">Terms used on this site</a>.</p>
 
+<nav class="toc" aria-label="On this page"><b>On this page</b><ol><li><a href="#sec-trendable">Which measures can be trended</a></li><li><a href="#sec-baseline">Year-over-year baseline</a></li><li><a href="#sec-rollup">State roll-up</a></li><li><a href="#sec-moving">Measure rates moving most</a></li><li><a href="#sec-detail">Comparable state rate changes</a></li></ol></nav>
+
   <div class="callout" id="mandatory"></div>
 
   <!-- 1. trendability -->
-  <h2>Which measures can be trended?</h2>
+  <h2 id="sec-trendable">Which measures can be trended?</h2>
   <div class="card">
     <p style="margin-top:0">CMS uses three criteria. A measure (or an individual measure rate within it) is
     trendable for 2022–2024 only if all three hold:</p>
@@ -40,7 +42,7 @@
     <div class="grid c3" id="audit-kpis"></div>
   </div>
 
-  <h3>Measures and measure rates CMS does not trend for 2022–2024</h3>
+  <h3 id="sec-notrend">Measure rates CMS does not trend for 2022–2024</h3>
   <div class="controls">
     <label class="ctl">Show
       <select id="t-show"><option value="no">Not trendable only</option>
@@ -56,7 +58,7 @@
   <div class="card scroll"><table id="trendable-table"></table></div>
 
   <!-- 2. baseline -->
-  <h2>Year-over-year baseline by program × domain</h2>
+  <h2 id="sec-baseline">Year-over-year baseline by program × domain</h2>
   <p class="lede">For every program × domain × transition, the baseline is the average
   direction-adjusted change across all comparable state rate changes (one per state × measure rate) in that group. A state rate
   change is <b>Improving</b> / <b>Declining</b> when it is more than ½ SD better / worse than its
@@ -69,7 +71,7 @@
   per-100,000 rate rather than unusual movement.</p>
 
   <!-- 3. state rollup -->
-  <h2>State roll-up</h2>
+  <h2 id="sec-rollup">State roll-up</h2>
   <div class="controls">
     <label class="ctl">Program
       <select id="s-prog"><option>Child Core Set</option><option>Adult Core Set</option></select></label>
@@ -81,7 +83,7 @@
   <div class="card"><div id="state-chart" class="chart"></div><div class="note" id="state-note"></div></div>
   <div class="card scroll"><table id="state-table"></table></div>
 
-  <h3>Example: how “Mean adj. Δ” is calculated</h3>
+  <h3 id="sec-example">Example: how “Mean adj. Δ” is calculated</h3>
   <div class="card">
     <div class="controls">
       <label class="ctl">State
@@ -92,13 +94,13 @@
   </div>
 
   <!-- 4. measures -->
-  <h2>Measure rates moving most</h2>
+  <h2 id="sec-moving">Measure rates moving most</h2>
   <p class="lede">Each trendable measure rate's mean direction-adjusted change across all comparable state rate
   changes (both transitions). Sorted worst first; click a header to re-sort.</p>
   <div class="card scroll"><table id="measure-table"></table></div>
 
   <!-- 5. detail -->
-  <h2>Comparable state rate changes (state × measure rate × transition)</h2>
+  <h2 id="sec-detail">Comparable state rate changes (state × measure rate × transition)</h2>
   <div class="controls">
     <label class="ctl">Class
       <select id="d-class"><option value="">All</option><option>Improving</option>

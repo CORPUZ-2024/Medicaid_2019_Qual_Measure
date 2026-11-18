@@ -10,12 +10,14 @@
 <body>
 <header class="site"></header>
 <main>
-  <h2>(B) 2024 Across all States by Measure Type and Domain</h2>
+  <h2 id="sec-b">(B) 2024 Across all States by Measure Type and Domain</h2>
   <p class="lede">Every 2024 measure in the Child and Adult Core Sets, with every reporting
   state on one chart per measure, plus a cross-state composite. Pick a program, then a domain
   from the toolbar — only domains that contain measures for that program are shown.
   Charts are per <b>measure rate</b>; a <b>measure</b> can have several (see <a href="index.html#terms">Terms used on this site</a>).
   Data: data.medicaid.gov, Quality theme.</p>
+
+<nav class="toc" aria-label="On this page"><b>On this page</b><ol><li><a href="#sec-b">Measure bars by domain</a></li><li><a href="#sec-composite">Composite state summary</a></li><li><a href="#sec-child-adult">Child vs Adult by state</a></li></ol></nav>
 
   <div class="card" id="kpis"><div class="grid c3"></div></div>
 
@@ -44,7 +46,7 @@
 
   <div id="measures"></div>
 
-  <h2>Composite state summary — On-Track share, 2024</h2>
+  <h2 id="sec-composite">Composite state summary — On-Track share, 2024</h2>
   <p class="lede">For each state, the share of its reported 2024 measure rates where the state is on
   track (state rate at least as good as the CMS median, direction-aware), split by program. Each measure
   rate counts separately (e.g. 7-day and 30-day follow-up are two measure rates of one measure).
@@ -54,7 +56,7 @@
     <div class="card"><div id="composite-child" class="chart"></div></div>
     <div class="card"><div id="composite-adult" class="chart"></div></div>
   </div>
-  <h3>Child vs Adult on-track share by state</h3>
+  <h3 id="sec-child-adult">Child vs Adult on-track share by state</h3>
   <p class="lede">One row per state. Sorted by the gap between the Child and Adult on-track
   shares (Child − Adult, largest first): states at the top do relatively better on the Child
   Core Set than on the Adult Core Set; states at the bottom, the reverse. All 52 jurisdictions

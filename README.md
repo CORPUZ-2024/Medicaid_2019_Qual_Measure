@@ -21,9 +21,9 @@ as **2026 Version V1 (Expanded Scope)** on the
 | Tab | What it shows |
 |------|---------------|
 | [Policy Context](https://corpuz-2024.github.io/Medicaid_2019_Qual_Measure/) | **First tab.** Why Core Set reporting matters (significance, requirements, cadence, link to reimbursement / value-based care); the current policy and funding landscape including the Nov 2026 midterms; how those changes may show up in quality measures vs other metrics. Primary sources linked. |
-| [(A) 2024 Measures by State and Domain](https://corpuz-2024.github.io/Medicaid_2019_Qual_Measure/state-domain.html) | **New.** Top / bottom 10 states by % of reported measures above the CMS median per domain; a filterable state × domain rate table (View A style); a domain composite chart and table (states, distinct measures, % of states above median, reporting variation) |
+| [(A) 2024 Measures by State and Domain](https://corpuz-2024.github.io/Medicaid_2019_Qual_Measure/state-domain.html) | **New.** Top / bottom 10 states by share of their reported measure rates on track (at or better than the CMS median) per domain; a filterable state × domain rate table (View A style); a domain composite chart and table (states reporting, distinct measures, % of states mostly on track, states that reported all measures) and reporting-variation notes |
 | [(B) 2024 Across all States by Measure Type and Domain](https://corpuz-2024.github.io/Medicaid_2019_Qual_Measure/measures.html) | Formerly "View B (2024)". Every measure, both Core Sets, all states — per-program domain toolbar, follow-up period in non-distinct titles, red dashed underperforming line, composite on-track share across all domains, Child vs Adult table by state |
-| [Trends 2022–24](https://corpuz-2024.github.io/Medicaid_2019_Qual_Measure/trends.html) | CMS's trendability criteria and the rates CMS does not trend; year-over-year baseline by program × domain; Improving / Stable / Declining; state roll-up with a worked example of the mean direction-adjusted change |
+| [Trends 2022–24](https://corpuz-2024.github.io/Medicaid_2019_Qual_Measure/trends.html) | CMS's trendability criteria and the measure rates CMS does not trend (filterable by Reason theme); year-over-year baseline by program × domain (state rate changes used and dropped); Improving / Stable / Declining; state roll-up with a worked example of the mean direction-adjusted change |
 | [Limitations](https://corpuz-2024.github.io/Medicaid_2019_Qual_Measure/limitations.html) · [Methodology](https://corpuz-2024.github.io/Medicaid_2019_Qual_Measure/methodology.html) | Scope caveats and how every number is produced |
 | [V1 archive](https://corpuz-2024.github.io/Medicaid_2019_Qual_Measure/v1/) | The previous site, frozen |
 
@@ -46,6 +46,10 @@ as **2026 Version V1 (Expanded Scope)** on the
 > The sections below describe the V1 build that V2 inherits. Items marked
 > *(V1 only)* were removed from `main` in V2 and live on the
 > [`2026_Version_V1_Expanded_Scope`](https://github.com/CORPUZ-2024/Medicaid_2019_Qual_Measure/tree/2026_Version_V1_Expanded_Scope) branch.
+
+## Terminology
+
+Pages use four terms with fixed meanings: **measure** (a CMS Core Set measure), **measure rate** (one rate definition within a measure, e.g. 7- and 30-day follow-up), **state rate** (a state's published value for a measure rate) and **state rate change** (one state's change on one measure rate between adjacent years). The full definitions and CMS's own usage are on the Policy Context page, under [Terms used on this site](https://corpuz-2024.github.io/Medicaid_2019_Qual_Measure/#terms).
 
 ## What changed — **scope**
 
@@ -111,7 +115,7 @@ as **2026 Version V1 (Expanded Scope)** on the
 src/coreset/      ingest · clean · states · viewb · trend · spec_audit · build
 run.py            orchestrator:  python run.py [--fetch]
 data/raw/         2022 / 2023 / 2024 Core Set CSVs (data.medicaid.gov, untouched)
-data/reference/   CMS's 2022–2024 trending determinations (cms_trendable_measures.csv)
+data/reference/   CMS's 2022–2024 trending determinations (cms_trendable_measures.csv); reviewed rate aliases (rate_aliases.csv)
 data/processed/   generated: cleaned panel + DQ exception log
 notebooks/        01–04, one per Appendix-A step (05/06 are V1 only)
 docs/             GitHub Pages site (static HTML + Plotly, reads docs/data/*.json)

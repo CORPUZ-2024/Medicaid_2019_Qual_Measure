@@ -10,7 +10,7 @@
 <body>
 <header class="site"></header>
 <main>
-  <h2>(A) 2024 Measures by State and Domain</h2>
+  <h2 id="sec-a">(A) 2024 Measures by State and Domain</h2>
   <p class="lede">How each state performs within each Core Set domain in 2024. A state result is
   <b>on track</b> (scored better than the median) when its <b>state rate</b> is at least as good as the CMS
   median for that <b>measure rate</b>. This is direction-aware: for lower-is-better measure rates, such as hospital
@@ -21,8 +21,10 @@
   The two depression-screening measure rates (CDF) are left out because their 2024 state rates are not
   publicly reported. Data: data.medicaid.gov, Quality theme.</p>
 
+<nav class="toc" aria-label="On this page"><b>On this page</b><ol><li><a href="#sec-overview">Top 10 and bottom 10 states</a></li><li><a href="#sec-rates">State rates by domain</a></li><li><a href="#sec-composite">Domain composite</a></li><li><a href="#sec-variation">Reporting variation</a></li></ol></nav>
+
   <!-- A.1 ranked overview -->
-  <h2>Overview — top 10 and bottom 10 states</h2>
+  <h2 id="sec-overview">Overview — top 10 and bottom 10 states</h2>
   <div class="card">
     <div class="controls">
       <label class="ctl">Program
@@ -43,7 +45,7 @@
   </div>
 
   <!-- A.2 state rates table -->
-  <h2>State rates by domain</h2>
+  <h2 id="sec-rates">State rates by domain</h2>
   <p class="lede">Pick a state and a domain to see that state's 2024 state rate on every measure rate next
   to the CMS median, in the spirit of the original View A. <b>Gap vs median</b> is oriented so
   that a positive number is always better than the median, including for lower-is-better
@@ -62,7 +64,7 @@
   </div>
 
   <!-- A.3 domain composite -->
-  <h2>Domain composite — how the country is doing by domain</h2>
+  <h2 id="sec-composite">Domain composite — how the country is doing by domain</h2>
   <p class="lede">For each program × domain: how many states reported, how many distinct
   measures (CMS abbreviations) the domain holds, how many states reported all of its measures, and the <b>% of reporting
   states mostly on track</b> — states where more than half of their reported measure rates in that
@@ -75,7 +77,7 @@
   change over time, see <a href="trends.html">Trends 2022–24</a>.</div>
   <div class="card"><div id="d-chart" class="chart"></div></div>
   <div class="card scroll"><table id="d-table"></table></div>
-  <h3>Reporting variation between states, by domain</h3>
+  <h3 id="sec-variation">Reporting variation between states, by domain</h3>
   <div class="card" id="d-notes"></div>
 </main>
 <footer class="site" id="foot"></footer>

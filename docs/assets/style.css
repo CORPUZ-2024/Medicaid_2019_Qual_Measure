@@ -82,3 +82,9 @@ th .tip{font-size:10px;margin-left:3px;color:var(--accent);vertical-align:super}
 th[aria-sort="ascending"]::after{content:" ▲";font-size:9px;color:var(--accent)}
 th[aria-sort="descending"]::after{content:" ▼";font-size:9px;color:var(--accent)}
 tr.empty td{color:var(--muted);font-style:italic;background:#fafbfc;text-align:center;padding:14px}
+
+/* table of contents on long pages */
+.toc{font-size:14px;margin:12px 0 18px;padding:10px 14px;border:1px solid var(--line);border-radius:6px;background:#fafbfc}
+.toc b{display:block;margin-bottom:6px;color:var(--muted)}
+.toc ol{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:4px 18px}
+.toc a{color:var(--accent)}
