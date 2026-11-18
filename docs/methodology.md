@@ -212,11 +212,15 @@ rate between years without changing what it measures (e.g. \"Inpatient Hospital
 Admissions\" became \"Hospitalizations\"). Trend pairing matches on the exact
 MeasureKey, so such a rate would lose its state pairs. 21 reworded pairs are aliased:
 the earlier year's key is mapped to the later year's key before pairing (`clean.py`).
-Each alias was reviewed by hand. Fuzzy text matching was not used because it also pairs
-different rates (for example a 6-month and a 12-week antidepressant measure rate).
-Pairs whose window, age band, population, numerator or denominator changed are not
-aliased. The aliases add 501 state rate changes (4,165 → 4,666). The 2024 figures on
-(A) and (B) do not change, because aliases only affect 2022 and 2023 rows.
+41 aliases are in use. 21 are wording-only changes. 20 are substantive changes that CMS
+marks Trend or Trend with caution for the later year, paired on CMS's determination with
+the caveat recorded in the `reason` column. Each was reviewed by hand. Fuzzy text
+matching was not used because it also pairs different rates. Two CMS-trendable pairs
+are not aliased because they are different rates (antidepressant 6-month → 12-week;
+ADD-CH 2+ visits → 1 visit), and each shares its target key with a same-rate pair.
+Pairs CMS marks Do Not Trend are not aliased. The aliases raise comparable state rate
+changes from 4,165 to 5,384. The 2024 figures on (A) and (B) do not change, because
+aliases only affect 2022 and 2023 rows.
 
 Groups are **program × domain**. The baseline table reports, per group:
 baseline, SD, stable band, **# of State rate changes Used** (comparable changes in

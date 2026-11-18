@@ -22,13 +22,17 @@ change, not two. CMS's own trend results use the change in the **state median**
 from 2022 to 2024 with a Wilcoxon signed-rank test; this site's state-level
 classification is a different, descriptive measure.
 
-CMS also changed 28 measure rates in substance between years: a window (postpartum
-60 → 90 days; 6 months → 12 weeks), an age band, a population or denominator, or a
-numerator. These pairs are not matched, so their state rate changes are not counted.
-CMS marks 22 of the 28 as Trend or Trend with caution for the later year, so this is the
-site's most conservative choice and it undercounts trendable changes. Pairing them means
-judging, rate by rate, whether the change keeps the measure comparable. That judgment
-has not been made.
+CMS also changed some measure rates in substance between years, for example a
+denominator, numerator, population or age band. The site pairs 20 of these where CMS
+marks the later rate Trend or Trend with caution, and records a caveat for each in
+`data/reference/rate_aliases.csv`. Those 20 pairs add 718 state rate changes. Treat
+trend results that depend on them as less certain, and see the caveats for the rates
+that matter most. Eight pairs are still not matched: six that CMS marks Do Not Trend,
+and two where the old and new rate measure different things (antidepressant 6-month
+→ 12-week; ADD-CH 2+ visits → 1 visit). For the two different-rate pairs, the pipeline
+cannot pair both a same-rate and a different-rate predecessor to the same target key.
+The ranking and baseline sensitivity figures on this page were measured before these
+pairs were added and should be re-run.
 
 ## 3. "Baseline = average YoY change" is a relative standard, and mixes units
 
