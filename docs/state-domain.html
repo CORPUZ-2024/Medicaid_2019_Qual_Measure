@@ -250,7 +250,7 @@ function renderDomains(){
   el('d-notes').innerHTML='<ul>'+rows.map(r=>{
     const gaps=[];
     if(r.states<N) gaps.push(`${N-r.states} of ${N} jurisdictions reported nothing in this domain`);
-    if(r.minN<r.series) gaps.push(`states reported between ${r.minN} and ${r.maxN} of the domain's ${r.series} rates; ${r.full} states reported all of them`);
+    if(r.minN<r.series) gaps.push(`states reported between ${r.minN} and ${r.maxN} of the domain's ${r.series} measures; ${r.full} states reported all of them`);
     const lo=Math.min(...r.perMeasure), hi=Math.max(...r.perMeasure);
     if(hi-lo>=10) gaps.push(`per-measure participation ranges from ${lo} to ${hi} states, so the composite leans on the widely reported measures`);
     return `<li><b>${short(r.program)} · ${r.domain}:</b> ${gaps.length?gaps.join('; ')+'.':'every reporting state reported every series — fully comparable.'}</li>`;
