@@ -57,7 +57,18 @@ def _load_cms_rules() -> pd.DataFrame:
     return df
 
 
-REASON_MIN_MEASURES = 3
+REASON_MIN_ROWS = 3
+# (label, keywords) in priority order; matched against the lower-cased CMS reason.
+REASON_THEMES = [
+    ("Met all three criteria", ("met all three criteria", "consistent specifications")),
+    ("Reporting started in 2023", ("first reported for 2023", "added by the measure steward in 2023")),
+    ("Data source changed", ("data source changed",)),
+    ("Measurement window changed", ("60 to 90 days",)),
+    ("Specification or reporting guidance changed",
+     ("specification change", "age criterion", "made required", "instructions for calculating",
+      "reporting guidance changed")),
+    ("Not publicly reported all three years", ("not publicly reported",)),
+]
 
 
 def determinations(clean: pd.DataFrame) -> pd.DataFrame:
@@ -89,13 +100,21 @@ def determinations(clean: pd.DataFrame) -> pd.DataFrame:
         })
     df = pd.DataFrame(out)
     df["trendable"] = df["determination"].isin(TRENDABLE)
-    # Reason category for display: reasons that apply to fewer than
-    # REASON_MIN_MEASURES distinct measures (by abbreviation, among rates published
-    # for 2024) are grouped as "Other"; the full reason text is kept in "reason".
+    # Reason category for the Trends page filter. Each CMS reason is mapped to a
+    # theme by keyword (REASON_THEMES, first match wins); a theme that covers fewer
+    # than REASON_MIN_ROWS measure rates published for 2024 is grouped as "Other".
+    # The full CMS reason text is kept in "reason".
+    def theme(reason: str) -> str:
+        low = reason.lower()
+        for label, keys in REASON_THEMES:
+            if any(k in low for k in keys):
+                return label
+        return "Other"
+    df["reason_category"] = df["reason"].map(theme)
     cur = df[df["years"].apply(lambda y: 2024 in y)]
-    n_meas = cur.groupby("reason")["measure_abbr"].nunique()
-    keep = set(n_meas[n_meas >= REASON_MIN_MEASURES].index)
-    df["reason_category"] = df["reason"].where(df["reason"].isin(keep), "Other")
+    n_rows = cur["reason_category"].value_counts()
+    small = set(n_rows[n_rows < REASON_MIN_ROWS].index)
+    df.loc[df["reason_category"].isin(small), "reason_category"] = "Other"
     return df
 
 

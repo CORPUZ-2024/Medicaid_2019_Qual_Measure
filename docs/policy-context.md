@@ -6,6 +6,29 @@ It is **forward-looking context, not a causal explanation** of any 2022–2024 m
 almost every event below postdates the data in this build. Election results cited here were
 **unofficial and uncertified** at the time of review.
 
+## <a id="terms"></a>Terms used on this site: measure, measure rate, state rate
+
+Every page uses three terms with fixed meanings, matching the column names in CMS's
+data.medicaid.gov Core Set files.
+
+| Term | Meaning | Example | Used for |
+|---|---|---|---|
+| **Measure** | A Core Set measure, identified by its CMS abbreviation | FUH-AD, Follow-Up After Hospitalization for Mental Illness | Counting what states reported: *Distinct measures* and *States that reported all measures* on (A), and the reporting-variation notes |
+| **Measure rate** | One rate definition within a measure (CMS column *Rate Definition*). A measure can have several, for age groups, follow-up windows or survey items | FUH-AD 7-day and FUH-AD 30-day are two measure rates of one measure | The unit of every performance calculation: on-track scores and rankings on (A), the per-measure charts and on-track shares on (B), and all trend calculations, including CMS trendability, which CMS decides per measure rate |
+| **State rate** | One state's published 2024 value for a measure rate (CMS column *State Rate*) | A state's published FUH-AD 7-day percentage | Comparisons with the CMS median, quartiles and year-over-year change (Δ state rate) |
+
+- **Reported a measure:** on this site, a state counts as reporting a measure when at least
+  one of its measure rates has a published state rate. A state can report a measure without
+  publishing all of its measure rates (for example, some but not all CAHPS survey items).
+- **How CMS uses these terms:** CMS counts reporting by *measure* (its 2024 Core Set fact sheet
+  reports the "median number of measures reported by states" and the "number of states
+  reporting all measures"). It uses *rate* both for a part of a measure (its 2022–2024 trend
+  methods brief notes that for some measures "some rates in the measure met the criteria for
+  trending and other rates did not") and for a state's value (the *State Rate* column).
+  Mandatory reporting requires states to report "all mandatory measures and rates". This site
+  says *measure rate* or *state rate* rather than a bare "rate" to keep the two apart. The fact
+  sheet does not state the rule CMS uses for when a partly reported measure counts as reported.
+
 ## 1. Why Core Set reporting matters
 
 ### Reporting significance

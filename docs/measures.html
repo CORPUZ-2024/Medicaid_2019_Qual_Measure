@@ -14,6 +14,7 @@
   <p class="lede">Every 2024 measure in the Child and Adult Core Sets, with every reporting
   state on one chart per measure, plus a cross-state composite. Pick a program, then a domain
   from the toolbar — only domains that contain measures for that program are shown.
+  Charts are per <b>measure rate</b>; a <b>measure</b> can have several (see <a href="index.html#terms">Terms used on this site</a>).
   Data: data.medicaid.gov, Quality theme.</p>
 
   <div class="card" id="kpis"><div class="grid c3"></div></div>
@@ -33,10 +34,10 @@
     </div>
     <div class="toolbar" id="f-domain" role="tablist" aria-label="Domain"></div>
     <div class="note">“Measure Type” in the source data is a direction flag, not a taxonomy — see
-      <a href="methodology.html#measure-type">methodology</a>. Bars show each state’s reported
-      rate for 2024, sorted ascending; colour encodes the rate on a domain scale. The
+      <a href="methodology.html#measure-type">methodology</a>. Bars show each state’s published
+      state rate for 2024, sorted ascending; colour encodes the state rate on a domain scale. The
       <b class="bad-ink">red dashed line</b> is the CMS median: states on the arrow side of it
-      are underperforming (not on track), direction-aware. Where several rate series share one
+      are underperforming (not on track), direction-aware. Where several measure rates share one
       measure name, the follow-up period or sub-rate is added to the title in parentheses.</div>
     <div id="measure-count" class="measure-meta"></div>
   </div>
@@ -45,9 +46,9 @@
 
   <h2>Composite state summary — On-Track share, 2024</h2>
   <p class="lede">For each state, the share of its reported 2024 measure rates where the state is on
-  track (rate at least as good as the CMS median, direction-aware), split by program. Each rate
-  definition counts separately (e.g. 7-day and 30-day follow-up are two rates).
-  <b>The composite pools all measures across all domains</b> — it is not limited to the domain
+  track (state rate at least as good as the CMS median, direction-aware), split by program. Each measure
+  rate counts separately (e.g. 7-day and 30-day follow-up are two measure rates of one measure).
+  <b>The composite pools all measure rates across all domains</b> — it is not limited to the domain
   selected above. States with <span id="cutoff"></span> are left out of the two charts but kept in the table.</p>
   <div class="grid c2">
     <div class="card"><div id="composite-child" class="chart"></div></div>
@@ -71,7 +72,7 @@ const el = id => document.getElementById(id);
   VB = await CS.json('view_b.json');
   CS.displayNames(VB.measures);
   const meta = await CS.json('meta.json');
-  el('cutoff').textContent = `fewer than 10 reported rates`;
+  el('cutoff').textContent = `fewer than 10 reported measure rates`;
   el('foot').innerHTML =
     `Generated ${meta.generated_utc} · ${CS.fmt(meta.canonical_rows,0)} canonical rows · `+
     `${meta.n_states} reporting states · spec: <code>${meta.spec}</code>`;
@@ -79,10 +80,11 @@ const el = id => document.getElementById(id);
   // KPIs
   const m = VB.measures;
   const byProg = p => m.filter(x=>x.program===p);
+  const nMeas = a => new Set(a.map(x=>x.measure_abbr||x.measure_name)).size;
   el('kpis').querySelector('.grid').innerHTML = [
-    ['Measure rates (2024)', m.length, `each measure × rate definition; ${m.filter(x=>x.bars.length).length} have published state rates`],
-    ['Child Core Set rates', byProg('Child Core Set').length, ''],
-    ['Adult Core Set rates', byProg('Adult Core Set').length, ''],
+    ['Measure rates (2024)', m.length, `each measure × rate definition, across ${nMeas(m)} distinct measures; ${m.filter(x=>x.bars.length).length} have published state rates`],
+    ['Child Core Set measure rates', byProg('Child Core Set').length, `${nMeas(byProg('Child Core Set'))} distinct measures`],
+    ['Adult Core Set measure rates', byProg('Adult Core Set').length, `${nMeas(byProg('Adult Core Set'))} distinct measures`],
   ].map(([k,v,s])=>`<div><div class="kpi">${CS.fmt(v,0)}<small>${k}${s?' — '+s:''}</small></div></div>`).join('');
 
   // filters: the domain toolbar only offers domains that have measures in the program
@@ -129,7 +131,7 @@ function render(){
     div.innerHTML=`
       <h3>${mm.display_name}</h3>
       <div class="measure-meta">${mm.rate_definition} · <b>${mm.measure_abbr||''}</b> ·
-        ${mm.measure_type_label} · ${mm.n_states_reported} states with a published rate ·
+        ${mm.measure_type_label} · ${mm.n_states_reported} states with a published state rate ·
         CMS median ${CS.rate(mm.cms_median,mm.cms_median)} ·
         <span title="CMS bottom (worst-performing) quartile threshold. For lower-is-better measures this is the higher number.">bottom quartile ${CS.rate(mm.cms_bottom_quartile,mm.cms_median)}</span> ·
         <span title="CMS top (best-performing) quartile threshold. For lower-is-better measures this is the lower number.">top quartile ${CS.rate(mm.cms_top_quartile,mm.cms_median)}</span> ·
@@ -194,10 +196,10 @@ function renderComposite(){
       type:'bar',orientation:'h',
       x:r.map(x=>x.on_track_share*100), y:r.map(x=>x.abbr),
       marker:{color:r.map(x=>x.on_track_share*100),colorscale:'Blues'},
-      hovertext:r.map(x=>`${x.state}: ${x.measures_on_track} of ${x.measures_reported} reported rates on track (${CS.pct(x.on_track_share,0)})`),
+      hovertext:r.map(x=>`${x.state}: ${x.measures_on_track} of ${x.measures_reported} reported measure rates on track (${CS.pct(x.on_track_share,0)})`),
       hovertemplate:'%{hovertext}<extra></extra>'
     }],{
-      title:{text:prog+' — % of reported rates on track',font:{size:13}},
+      title:{text:prog+' — % of reported measure rates on track',font:{size:13}},
       height:Math.max(340,15*r.length+60),margin:{l:44,r:14,t:34,b:34},
       xaxis:{ticksuffix:'%',range:[0,100],gridcolor:'#eef0f2'},
       yaxis:{automargin:true,tickfont:{size:10}}
@@ -217,8 +219,8 @@ function renderComposite(){
   const t=el('composite-table');
   t.innerHTML=`<thead><tr>
     ${CS.th('State')}
-    ${CS.th('Child on-track share (on track / reported)','Child Core Set rates where the state is at or better than the CMS median ÷ all Child Core Set rates the state reported in 2024, across all domains.',true)}
-    ${CS.th('Adult on-track share (on track / reported)','Adult Core Set rates where the state is at or better than the CMS median ÷ all Adult Core Set rates the state reported in 2024, across all domains.',true)}
+    ${CS.th('Child on-track share (on-track / reported measure rates)','Child Core Set measure rates where the state rate is at or better than the CMS median ÷ all Child Core Set measure rates the state reported in 2024, across all domains.',true)}
+    ${CS.th('Adult on-track share (on-track / reported measure rates)','Adult Core Set measure rates where the state rate is at or better than the CMS median ÷ all Adult Core Set measure rates the state reported in 2024, across all domains.',true)}
     </tr></thead><tbody>${
     states.map(x=>`<tr><td data-v="${x.state}">${x.state}</td>${cell(x.child)}${cell(x.adult)}</tr>`).join('')}</tbody>`;
   CS.sortable(t);

@@ -69,10 +69,11 @@ Computed in the browser from `docs/data/view_b.json`; no extra build step.
   named.
 - **State rates table:** one row per state × rate, with the CMS median and a gap
   oriented so that positive = better than the median.
-- **Domain composite:** per program × domain — states reporting ≥ 1 rate;
-  distinct measures (by CMS abbreviation); measure rates; **% of states mostly on track** =
-  share of reporting states whose own on-track share in that domain is > 50%; rates reported per state (min · median · max); and states
-  reporting every rate. The NPR depression-screening rates are excluded. The reporting-variation notes are generated from the
+- **Domain composite:** per program × domain — states with ≥ 1 published state rate;
+  distinct measures (by CMS abbreviation); **% of states mostly on track** =
+  share of reporting states whose own on-track share (per measure rate) in that domain is > 50%; and
+  states that reported all measures (a published state rate for at least one measure rate of every
+  measure in the domain). See [Terms used on this site](index.html#terms). The NPR depression-screening rates are excluded. The reporting-variation notes are generated from the
   same numbers.
 
 ## Page (B) — 2024 Across all States by Measure Type and Domain (`viewb.py`, `measures.html`)

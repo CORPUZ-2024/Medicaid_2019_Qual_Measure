@@ -15,6 +15,7 @@
 <script>
 fetch('policy-context.md',{cache:'no-cache'}).then(r=>r.text()).then(t=>{
   document.getElementById('doc').innerHTML = mdToHtml(t);
+  if(location.hash){ const a=document.getElementById(location.hash.slice(1)); if(a) a.scrollIntoView(); }
 }).catch(e=>{document.getElementById('doc').innerHTML='<p>Could not load policy-context.md: '+e+'</p>';});
 </script>
 </body>
