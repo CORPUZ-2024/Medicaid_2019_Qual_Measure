@@ -105,6 +105,19 @@ def build_clean(write: bool = True) -> pd.DataFrame:
         + " | " + canonical["RateDefinition"].fillna("")
     )
 
+    # Reviewed rate aliases (data/reference/rate_aliases.csv): the same measure
+    # rate published under reworded text in a later year. Rows in the earlier
+    # year of each pair take the later year's MeasureKey so trend pairing matches
+    # them. Only wording changes are aliased; window, population, age-band and
+    # numerator changes are NOT aliased (they are different rates).
+    aliases = pd.read_csv(config.REFERENCE / "rate_aliases.csv")
+    for a in aliases.itertuples(index=False):
+        y0 = int(a.transition.split("->")[0])
+        mask = (canonical["MeasureKey"] == a.old_key) & (canonical["CoreSetYear"] == y0)
+        canonical.loc[mask, "MeasureKey"] = a.new_key
+    if canonical.duplicated(["CoreSetYear", "State", "MeasureKey"]).any():
+        raise ValueError("rate alias collision: two rows for one state, year and MeasureKey")
+
     # The non-canonical rows are retained on disk (non_canonical_rows.csv) so
     # spec_audit can derive the 2.3d "other specifications" state-level
     # comparability flag from them.

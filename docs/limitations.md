@@ -22,6 +22,14 @@ change, not two. CMS's own trend results use the change in the **state median**
 from 2022 to 2024 with a Wilcoxon signed-rank test; this site's state-level
 classification is a different, descriptive measure.
 
+CMS also changed 28 measure rates in substance between years: a window (postpartum
+60 → 90 days; 6 months → 12 weeks), an age band, a population or denominator, or a
+numerator. These pairs are not matched, so their state rate changes are not counted.
+CMS marks 22 of the 28 as Trend or Trend with caution for the later year, so this is the
+site's most conservative choice and it undercounts trendable changes. Pairing them means
+judging, rate by rate, whether the change keeps the measure comparable. That judgment
+has not been made.
+
 ## 3. "Baseline = average YoY change" is a relative standard, and mixes units
 
 If every state declines in a domain in a given year, the baseline shifts down
@@ -74,7 +82,10 @@ states reporting different numbers of measures.
 
 All on-track scores count **measure rates**, not measures, so a measure with many
 measure rates carries more weight: Child Experience of Care is one measure with 15
-measure rates, while most measures have one to three.
+measure rates, while most measures have one to three. This changes rankings. Scoring
+each measure equally instead gives a Spearman correlation of 0.78 with the measure-rate
+score across the 52 states. The biggest moves are California (39th → 15th), Washington
+(33rd → 11th) and West Virginia (21st → 42nd). The site uses the measure-rate score.
 
 ## 9. "Reported a measure" is this site's rule
 

@@ -207,6 +207,17 @@ Declining     : adj. Δ < baseline − 0.5 SD
 Stable        : otherwise
 ```
 
+**Rate aliases (`data/reference/rate_aliases.csv`).** CMS sometimes reworded a measure
+rate between years without changing what it measures (e.g. \"Inpatient Hospital
+Admissions\" became \"Hospitalizations\"). Trend pairing matches on the exact
+MeasureKey, so such a rate would lose its state pairs. 21 reworded pairs are aliased:
+the earlier year's key is mapped to the later year's key before pairing (`clean.py`).
+Each alias was reviewed by hand. Fuzzy text matching was not used because it also pairs
+different rates (for example a 6-month and a 12-week antidepressant measure rate).
+Pairs whose window, age band, population, numerator or denominator changed are not
+aliased. The aliases add 501 state rate changes (4,165 → 4,666). The 2024 figures on
+(A) and (B) do not change, because aliases only affect 2022 and 2023 rows.
+
 Groups are **program × domain**. The baseline table reports, per group:
 baseline, SD, stable band, **# of State rate changes Used** (comparable changes in
 the group), **States** (distinct states contributing at least one), and
