@@ -208,9 +208,9 @@ function drawBaseline(){
   t.innerHTML=`<thead><tr>${CS.th('Program')}${CS.th('Domain')}${CS.th('Transition')}
     ${CS.th('Baseline (mean adj. Δ)',DEF.base,true)}${CS.th('SD',DEF.sd,true)}
     ${CS.th('Stable band',  'Baseline − 0.5 SD to baseline + 0.5 SD. Changes inside the band are Stable.',true)}
-    ${CS.th('# of Measure rates Used (From all reporting states for each measure in a given domain)','Comparable state × rate changes in the group (state reported the rate in both years; CMS trends the rate; the state did not change its calculation method between the two years).',true)}
+    ${CS.th('# of Measure rates Used (From all reporting states for each measure in a given domain)','Number of measure rates used, counted across all reporting states for each measure in the domain (one per state × measure rate in this transition). A measure rate is used when the state reported it in both years, CMS trends it, and the state did not change its calculation method between the two years.',true)}
     ${CS.th('States','Distinct states contributing at least one change.',true)}
-    ${CS.th('# of Measure rates Dropped (From all reporting states for each measure in a given domain)','State changes in the group dropped by the CMS trendability rule or the deviation check.',true)}
+    ${CS.th('# of Measure rates Dropped (From all reporting states for each measure in a given domain)','Number of measure rates dropped, counted across all reporting states for each measure in the domain (one per state × measure rate in this transition). A measure rate is dropped when CMS does not trend it or the state changed its calculation method between the two years.',true)}
     </tr></thead><tbody>${rows.map(({prog,dom,tr,b,why})=>why?`<tr>
       <td>${short(prog)}</td><td>${dom}</td><td>${tr}</td><td colspan="6" class="muted" data-v="">${why}</td></tr>`
      :`<tr><td>${short(prog)}</td><td>${dom}</td><td>${tr}</td>
